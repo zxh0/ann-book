@@ -2,7 +2,7 @@
 
 > ANN for the Rest of Us
 >
-> 版本：v2026.04.28
+> 版本：v2026.05.09
 
 免责申明：本书还在很早期的草稿阶段，以下内容可能有很多逻辑混乱、甚至胡言乱语的地方，我会慢慢改进！
 
@@ -175,7 +175,7 @@
   - 第四章：卷积神经网络。介绍卷积神经网络的结构和内部机制，以及其在图像任务中的应用。
 - 第二部分
   - 第五章：循环神经网络。介绍循环神经网络处理序列数据的基本思路和工作机制。
-  - 第六章：词元和嵌入。介绍文本如何被切分为词元，以及如何转化为向量表示。
+  - 第六章：词元和词嵌入。介绍文本如何被切分为词元，以及如何转化为向量表示。
   - 第七章：长短期记忆网络。介绍 LSTM 及其简化版本 GRU，解决长序列依赖问题的思路。
   - 第八章：编解码模型。介绍序列到序列问题，以及编码器-解码器结构的基本框架。
   - 第九章：注意力机制。介绍注意力机制如何动态关注关键信息，提高模型表现。
@@ -541,7 +541,7 @@ def new_neuron(w: float):
     return lambda x: w * x
 
 neuron = new_neuron(2) # w=2
-print(neuron(1.2)) # 打印出2.4
+print(neuron(1.2)) # 2.4
 ```
 
 或许你心里还会有个疑问：这个参数为什么要用字母`w`来表示？别急，在后面“加权求和”这一小节里，我会给你解释。
@@ -575,7 +575,7 @@ def new_neuron(w: float, b: float):
     return lambda x: w * x + b
 
 neuron = new_neuron(3, 4) # w=3, b=4
-print(neuron(2.5)) # 打印出11.5
+print(neuron(2.5)) # 11.5
 ```
 
 
@@ -623,8 +623,7 @@ $$
 
 ```python
 def tanh(x: float) -> float:
-    a = e ** x
-    b = e ** (-x)
+    a, b = e ** x, e ** (-x)
     return (a - b) / (a + b)
 ```
 
@@ -656,9 +655,9 @@ def new_neuron(w: float, b: float, af):
 neuron1 = new_neuron(w=1, b=2, af=sigmoid)
 neuron2 = new_neuron(w=3, b=4, af=tanh)
 neuron3 = new_neuron(w=5, b=6, af=relu)
-print(neuron1(-1.2)) # 打印出0.6899744811276125
-print(neuron2(-3.4)) # 打印出-0.9999917628565104
-print(neuron3(-5.6)) # 打印出0
+print(neuron1(-1.2)) # 0.6899744811276125
+print(neuron2(-3.4)) # -0.9999917628565104
+print(neuron3(-5.6)) # 0
 ```
 
 
@@ -721,8 +720,8 @@ $$
 
 ```python
 neuron = new_neuron(w=[1, 1, -1], b=0, af=relu)
-print(neuron([1, 2, 3]) > 0) # 打印出False
-print(neuron([4, 5, 6]) > 0) # 打印出True
+print(neuron([1, 2, 3]) > 0) # False
+print(neuron([4, 5, 6]) > 0) # True
 ```
 
 经过一番努力，我们的迷你“神经网络”已经拥有了四个参数（三个权重和一个偏置），它能判断某两个数之和是否大于第三个数。是不是很了不起？我们可以把它封装起来，对外提供服务啦，如下图所示：
@@ -982,7 +981,7 @@ test_dataset = datasets.MNIST(root="./data", train=False,
 根据前文的公式，我们很容易算出这个神经网络的总参数数为`(784+1)×10`，也就是7,850个参数。在第一章中，单个神经元的结构比较简单，我们都是手动设置参数。但上面这个看似简单的网络，实际已包含七千多个参数，手动设置显然不太现实，因此我们必须通过训练让它自动学习并调整参数。我已经用PyTorch框架实现了这个神经网络，代码其实非常简洁。这里仅展示构建网络的核心部分，完整代码可从本书配套源代码中获取。
 
 ```python
-# 定义神经网络
+# 定义神经网络（感知机）
 class Perceptron(nn.Module):
     def __init__(self):
         super(Perceptron, self).__init__()
@@ -1170,7 +1169,7 @@ layer1 = new_fc_layer(np.random.randn(300, 784), np.random.randn(300))
 layer2 = new_fc_layer(np.random.randn(100, 300), np.random.randn(100))
 layer3 = new_fc_layer(np.random.randn(10, 100), np.random.randn(10))
 mlp = new_mlp([layer1, layer2, layer3])
-print(mlp(np.random.rand(28, 28).flatten()))
+print(mlp(np.random.randn(28 * 28)))
 ```
 
 
@@ -1186,13 +1185,13 @@ print(mlp(np.random.rand(28, 28).flatten()))
 class MLP(nn.Module):
     def __init__(self):
         super(MLP, self).__init__()
-        self.fc1 = nn.Linear(28*28, 300)  # 第一层：784 -> 300
-        self.fc2 = nn.Linear(300, 100)    # 第二层：300 -> 100
-        self.fc3 = nn.Linear(100, 10)     # 输出层：100 -> 10
+        self.fc1 = nn.Linear(28*28, 300) # 第一层：784 -> 300
+        self.fc2 = nn.Linear(300, 100)   # 第二层：300 -> 100
+        self.fc3 = nn.Linear(100, 10)    # 输出层：100 -> 10
         self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = x.view(-1, 28*28)  # 展平
+        x = x.view(-1, 28*28) # 展平
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.fc3(x)
@@ -2106,6 +2105,47 @@ def new_rnn(rnn_layers: list, fc_layer):
 
 在字符集较小的情况下（例如 Char-RNN 场景），这些问题通常还可以接受。但如果我们把文本处理的基本单位从“字符”提升到更高层次的“单词”，那么词表规模往往会达到上万甚至更多，此时独热编码带来的维度和稀疏问题就会被放大许多个数量级，变得难以接受。关于这个问题，以及更高效的解决方案，我们会在后续章节中再详细讨论。
 
+示例代码：
+
+```python
+import numpy as np
+
+def char_one_hot(txt: str):
+    # 1. 收集不重复的 char，排序
+    vocab = sorted(set(txt))
+
+    # 2. 生成 one-hot 矩阵
+    one_hot = np.eye(len(vocab), dtype=int)
+
+    # 3. 打印每个 char 及其 one-hot vector
+    for idx, ch in enumerate(vocab):
+        print(f"{repr(ch)}: {one_hot[idx].tolist()}")
+
+txt = "To be, or not to be, that is the question."
+char_one_hot(txt)
+```
+
+输出：
+
+```
+' ': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+',': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'.': [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'T': [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'a': [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'b': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'e': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'h': [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+'i': [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+'n': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+'o': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+'q': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+'r': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+'s': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+'t': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+'u': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+```
+
 
 
 ### 生成式AI
@@ -2152,6 +2192,26 @@ class CharRNN(nn.Module):
 ```
 
 读者可能已经注意到：如果我们在生成阶段，每一步都选择概率最大的字符，那么在相同的种子输入下，模型每次生成的结果都会完全一致。这显然会让生成的文本变得单一、缺乏变化。而现实中的聊天机器人并不是这样工作的。它们通常会引入一些随机性控制策略，例如温度值、Top-k 采样、Top-p 采样等。这些方法可以在“确定性”和“随机性”之间做平衡，从而生成更加自然、多样的文本。我们将在下面的小节里，陆续详细介绍这些技术。
+
+玩具char-rnn，效果：
+
+```
+============================================================
+Seed: "long long ago"
+============================================================
+long long agooped the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world comes the servant the servant
+The serves the world com
+============================================================
+```
 
 
 
@@ -2257,6 +2317,31 @@ def sample_by_prob(probs: list[float]) -> int:
 
 总之，通过温度 + Top-K / Top-p 采样 ，我们就可以在“确定性”和“随机性”之间取得平衡，从而生成既合理又多样的文本。
 
+效果：
+
+```
+============================================================
+Seed: "long long ago"
+============================================================
+long long agour,
+Save at your suefilled to the counsel made a
+kingarding fires will have thought in the consure
+O' the that poised of little known to blood.
+
+DUKE VINCENTIO:
+So stay with thee saw I hear of love's face it be.
+Which is umthing with them sorrow with thee?
+Whating of them to be of me;
+And tell me your most late, bid to bound touchly came,
+For brother's saunt as great love; stranges: the swain
+My sovereign, Gremio! why thou hast bitter years
+To with my heart, give him particians?
+
+BUCKINGHAM:
+My
+============================================================
+```
+
 
 
 ### 本章小结
@@ -2292,7 +2377,7 @@ $$H' = σ(W_{xh}X + W_{hh}H + B_h)，\quad Y = σ(W_{hy}H' + B_y)$$
 
 <div style="page-break-after: always;"></div>
 
-## 第六章：词元和嵌入
+## 第六章：词元和词嵌入
 
 Token
 
@@ -2328,9 +2413,35 @@ Byte tokens
 
 
 
-### 词元（Token）
+### 词元
 
 编译原理，也要分词
+
+（Token）
+
+
+
+### 独热编码
+
+One-hot
+
+
+
+### 词袋模型
+
+Bag-of-Words
+
+
+
+### 词嵌入
+
+TODO
+
+
+
+### Word2Vec
+
+TODO
 
 
 
@@ -2666,6 +2777,18 @@ Luong attention（multiplicative）
 
 
 
+### 注意力机制
+
+TODO
+
+
+
+### PyTorch实现
+
+TODO
+
+
+
 ### 本章小结
 
 TODO
@@ -2692,9 +2815,113 @@ GPT：只用 Decoder（生成型模型）
 
 
 
-### 自注意力机制
+### Q、K、V
 
-TODO
+TODO：
+
+<img src="./images/ch09/qkv.png" alt="qkv" style="zoom:50%;" />
+
+KQV计算：
+$$
+Q_1 = X_1 \times W_q \\
+K_1 = X_1 \times W_k \\
+V_1 = X_1 \times W_v
+$$
+
+矩阵：
+
+<img src="./images/ch09/qkv2.png" alt="qkv2" style="zoom:50%;" />
+
+用矩阵表示：
+$$
+Q = X \times W_q \\
+K = X \times W_k \\
+V = X \times W_v
+$$
+
+Python代码：
+
+```python
+def calc_qkv(w_q, w_k, w_v, x):
+    q = x @ w_q
+    k = x @ w_k
+    v = x @ w_v
+    return q, k, v
+```
+
+
+
+### 分数
+
+介绍
+
+<img src="./images/ch09/score.png" alt="score" style="zoom:50%;" />
+
+
+
+
+分数：
+$$
+score_{ij} = softmax(\frac{Q_i \cdot K_j}{\sqrt{d_k}})
+$$
+用矩阵表示：
+$$
+Score = softmax(\frac{Q \times K^T}{\sqrt{d_k}})
+$$
+
+Python代码：
+
+```python
+def calc_score(q, k, v, sqrt_d_k):
+    score = q @ k.T / sqrt_d_k
+    return softmax(score)
+```
+
+
+
+### 自注意力
+
+<img src="./images/ch09/attention.png" alt="attention" style="zoom:50%;" />
+
+V加权求和：
+$$
+Z_i = \sum_{j=1}^{n}{score_{ij} \times V_j}
+$$
+
+用矩阵表示：
+$$
+Z = softmax(\frac{Q \times K^T}{\sqrt{d_k}}) \times V
+$$
+
+代码：
+
+```python
+def calc_self_attention(w_q, w_k, w_v, sqrt_d_k, x):
+    q, k, v = calc_qkv(w_q, w_k, w_v, x)
+    score = calc_score(q, k, v, sqrt_d_k)
+    return score @ v
+```
+
+
+
+### 多头自注意力
+
+多个W矩阵，计算出多个Z
+
+拼接Z
+
+乘上另外一个W
+
+玩具代码：
+
+```python
+def new_multi_head(heads, w_o):
+    def multi_head(x):
+        z_list = [head(x) for head in heads]
+        z = np.concatenate(z_list, axis=1)
+        return z @ w_o
+    return multi_head
+```
 
 
 
@@ -2705,6 +2932,18 @@ TODO
 
 
 ### 解码器
+
+TODO
+
+
+
+### 整体架构
+
+TODO
+
+
+
+### PyTorch实现
 
 TODO
 
@@ -2848,6 +3087,8 @@ TODO
 | 1997 | Long Short-Term Memory                                       |          | LSTM        |
 | 1998 | [GradientBased Learning Applied to Document Recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf) | 杨立昆等 | LeNet-5     |
 | 2012 | ImageNet Classification with Deep Convolutional Neural Networks |          | ImageNet    |
+| 2013 | [Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/abs/1301.3781) | Google   | Word2Vec    |
+| 2013 | [Distributed Representations of Words and Phrases and their Compositionality](https://arxiv.org/abs/1310.4546) | Google   | Word2Vec    |
 | 2014 | [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078) |          | GRU         |
 | 2014 | [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215) | Google   | Seq2Seq     |
 | 2014 | [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) |          | Attention   |
@@ -2855,8 +3096,6 @@ TODO
 | 2017 | [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | Google   | Transformer |
 | 2018 | [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf) | OpenAI   | GPT-1       |
 | 2018 | [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) | Google   | BERT        |
-|      |                                                              |          |             |
-|      |                                                              |          |             |
 |      |                                                              |          |             |
 |      |                                                              |          |             |
 

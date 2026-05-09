@@ -26,7 +26,7 @@ BATCH_SIZE   = 64
 EPOCHS       = 20
 LR           = 0.003
 CLIP_GRAD    = 5.0
-PRINT_EVERY  = 200      # steps
+PRINT_EVERY  = 10       # steps
 DEVICE       = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -47,16 +47,16 @@ def build_vocab(text):
     return chars, c2i, i2c
 
 
+# indices: (seq_len, batch) → one_hot: (seq_len, batch, vocab_size)
 def one_hot(indices, vocab_size):
-    """indices: (batch, seq_len) → one_hot: (seq_len, batch, vocab_size)"""
     seq_len, batch = indices.shape
     oh = torch.zeros(seq_len, batch, vocab_size, device=DEVICE)
     oh.scatter_(2, indices.unsqueeze(2), 1.0)
     return oh
 
 
+# Encode the full text then yield (input, target) tensor pairs.
 def make_batches(text, c2i, seq_len, batch_size):
-    """Encode the full text then yield (input, target) tensor pairs."""
     data = torch.tensor([c2i[c] for c in text], dtype=torch.long)
     # trim to exact multiple of (seq_len * batch_size)
     total = (len(data) - 1) // (seq_len * batch_size) * (seq_len * batch_size)
@@ -84,10 +84,10 @@ class CharRNN(nn.Module):
         self.rnn    = nn.RNN(vocab_size, hidden_size, num_layers)
         self.linear = nn.Linear(hidden_size, vocab_size)
 
+    # x_oh: (seq_len, batch, vocab_size)
     def forward(self, x_oh, hidden=None):
-        """x_oh: (seq_len, batch, vocab_size)"""
-        out, hidden = self.rnn(x_oh, hidden)          # out: (seq, batch, hidden)
-        logits = self.linear(out)                      # (seq, batch, vocab)
+        out, hidden = self.rnn(x_oh, hidden) # out: (seq, batch, hidden)
+        logits = self.linear(out)            # (seq, batch, vocab)
         return logits, hidden
 
     def init_hidden(self, batch_size):
@@ -108,8 +108,8 @@ def train(model, text, c2i, vocab_size):
             # detach hidden state from previous batch graph
             hidden = hidden.detach()
 
-            x_oh   = one_hot(x, vocab_size)          # (seq, batch, vocab)
-            logits, hidden = model(x_oh, hidden)     # logits: (seq, batch, vocab)
+            x_oh = one_hot(x, vocab_size)        # (seq, batch, vocab)
+            logits, hidden = model(x_oh, hidden) # logits: (seq, batch, vocab)
 
             # flatten for cross-entropy
             loss = criterion(logits.view(-1, vocab_size), y.view(-1))
@@ -134,7 +134,32 @@ def train(model, text, c2i, vocab_size):
 
 
 # ── Generation ─────────────────────────────────────────────────────────────────
-def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500, temperature=0.8):
+def sample_logits(logits, temperature=0.8, top_k=0, top_p=0.0):
+    """Apply temperature, top-k, and top-p filtering, then sample one index."""
+    logits = logits / temperature
+
+    # top-k: keep only the k highest-logit tokens
+    if top_k > 0:
+        top_k = min(top_k, logits.size(-1))
+        threshold = torch.topk(logits, top_k).values[-1]
+        logits[logits < threshold] = -float("inf")
+
+    # top-p (nucleus): keep the smallest set whose cumulative prob >= p
+    if top_p > 0.0:
+        sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+        cum_probs = torch.cumsum(torch.softmax(sorted_logits, dim=0), dim=0)
+        # remove tokens that push cumulative prob over the threshold
+        remove = cum_probs > top_p
+        remove[1:] = remove[:-1].clone()  # shift right: always keep the top token
+        remove[0] = False
+        logits[sorted_idx[remove]] = -float("inf")
+
+    probs = torch.softmax(logits, dim=0)
+    return torch.multinomial(probs, 1).item()
+
+
+def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500,
+             temperature=0.8, top_k=0, top_p=0.0):
     model.eval()
     hidden = model.init_hidden(1)
 
@@ -152,9 +177,7 @@ def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500, temp
         x_oh = one_hot(idx.T, vocab_size)
         logits, hidden = model(x_oh, hidden)          # logits: (1,1,vocab)
 
-        # sample from distribution
-        probs = torch.softmax(logits[0, 0] / temperature, dim=0)
-        next_idx = torch.multinomial(probs, 1).item()
+        next_idx = sample_logits(logits[0, 0], temperature, top_k, top_p)
         ch = i2c[next_idx]
         result.append(ch)
 
@@ -168,6 +191,8 @@ def main():
     parser.add_argument("--seed",  default="long long ago", help="generation seed text")
     parser.add_argument("--length", type=int, default=500,  help="number of chars to generate")
     parser.add_argument("--temp",   type=float, default=0.8, help="sampling temperature")
+    parser.add_argument("--top-k",  type=int,   default=0,   help="top-k sampling (0 = disabled)")
+    parser.add_argument("--top-p",  type=float, default=0.0, help="top-p nucleus sampling (0.0 = disabled)")
     args = parser.parse_args()
 
     text = load_data()
@@ -175,12 +200,16 @@ def main():
     vocab_size = len(chars)
     print(f"Vocab size: {vocab_size}")
 
+    one_hot_table = torch.eye(vocab_size, dtype=torch.int)
+    for i, ch in enumerate(chars):
+        print(f"{repr(ch)}: {one_hot_table[i].tolist()}")
+
     model = CharRNN(vocab_size, HIDDEN_SIZE, NUM_LAYERS).to(DEVICE)
 
     if args.generate:
         if not os.path.exists(CKPT_FILE):
             raise FileNotFoundError(f"No checkpoint found at {CKPT_FILE}. Train first.")
-        ckpt = torch.load(CKPT_FILE, map_location=DEVICE)
+        ckpt = torch.load(CKPT_FILE, map_location=DEVICE, weights_only=False)
         model.load_state_dict(ckpt["state_dict"])
         print(f"Loaded checkpoint from {CKPT_FILE}")
     else:
@@ -190,7 +219,8 @@ def main():
     print(f"Seed: \"{args.seed}\"")
     print("=" * 60)
     print(generate(model, c2i, i2c, vocab_size,
-                   seed=args.seed, length=args.length, temperature=args.temp))
+                   seed=args.seed, length=args.length, temperature=args.temp,
+                   top_k=args.top_k, top_p=args.top_p))
     print("=" * 60)
 
 
