@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="9_gZ7kOxyzkzqC8pKqVU" name="roadmap">
-        <mxGraphModel dx="732" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+        <mxGraphModel dx="829" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -113,7 +113,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="G0glVyMoz28dVLXaq1Tc" name="stack">
-        <mxGraphModel dx="732" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+        <mxGraphModel dx="829" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -151,7 +151,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="UMQVGFNkSgAMsG1n1ZVC" name="dl">
-        <mxGraphModel dx="732" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+        <mxGraphModel dx="829" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -182,17 +182,70 @@
                 <mxCell id="C4Pzl5y5H1nRotzc5HKP-11" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Seq2Seq&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" parent="1" vertex="1">
                     <mxGeometry x="482" y="265" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="cWgl1Ltdb3LDIIAB3svr-3" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Attention&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" vertex="1" parent="1">
+                <mxCell id="cWgl1Ltdb3LDIIAB3svr-3" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Attention&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" parent="1" vertex="1">
                     <mxGeometry x="518" y="265" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="cWgl1Ltdb3LDIIAB3svr-4" value="GPT/BERT" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" vertex="1" parent="1">
+                <mxCell id="cWgl1Ltdb3LDIIAB3svr-4" value="GPT/BERT" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" parent="1" vertex="1">
                     <mxGeometry x="590" y="265" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="iq0O71ELNlUDii7-SENP-1" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Transformer&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" vertex="1" parent="1">
+                <mxCell id="iq0O71ELNlUDii7-SENP-1" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Transformer&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" parent="1" vertex="1">
                     <mxGeometry x="554" y="265" width="70" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="lJpEVr6GaSlvdQWV7x_9-1" value="Diffusion" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" vertex="1" parent="1">
+                <mxCell id="lJpEVr6GaSlvdQWV7x_9-1" value="Diffusion" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;rotation=-90;" parent="1" vertex="1">
                     <mxGeometry x="626" y="265" width="70" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="bc8jX_3-SpBc1w5AKTNu" name="Page-4">
+        <mxGraphModel dx="415" dy="318" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="PPK9zO0fTjUOwJOmEcjn-1" value="基础" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="120" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ZcaYsuCxGCpMGTEPPc6z-1" value="基础知识" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="240.63" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ZcaYsuCxGCpMGTEPPc6z-2" value="人工神经元" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="280.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="x9N6dS2QOIrUE19C1Nkm-1" value="数字识别" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-1" value="感知机" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="320.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-2" value="多层感知机" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="360.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-3" value="卷积神经网络" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="400.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-4" value="GenAI" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-5" value="循环神经网络" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="440.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-6" value="词元和词嵌入" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="480.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-7" value="长短期记忆网络" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="520.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-8" value="机器翻译" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-9" value="编解码结构" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="560.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-10" value="注意力机制" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="600.5" y="199" width="118" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41TjJF0EqCUrwGSQyO8i-11" value="Transformer架构" style="rounded=1;whiteSpace=wrap;html=1;rotation=-90;" vertex="1" parent="1">
+                    <mxGeometry x="640.5" y="199" width="118" height="40" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

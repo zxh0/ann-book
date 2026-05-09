@@ -13,3 +13,7 @@ def sample_by_prob(probs: list[float]) -> int:
     
     # 兜底（防止浮点误差）
     return len(probs) - 1
+
+
+probs = [0.4, 0.3, 0.2, 0.1]
+print(sample_by_prob(probs))
