@@ -140,8 +140,8 @@ def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500):
 
     # warm up on the seed
     for ch in seed[:-1]:
-        idx = torch.tensor([[c2i.get(ch, 0)]], device=DEVICE)   # (1,1)
-        x_oh = one_hot(idx.T, vocab_size)                        # (1,1,vocab)
+        idx = torch.tensor([[c2i.get(ch, 0)]], device=DEVICE) # (1,1)
+        x_oh = one_hot(idx.T, vocab_size)                     # (1,1,vocab)
         _, hidden = model(x_oh, hidden)
 
     result = list(seed)
@@ -150,7 +150,7 @@ def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500):
     for _ in range(length):
         idx = torch.tensor([[c2i.get(ch, 0)]], device=DEVICE)
         x_oh = one_hot(idx.T, vocab_size)
-        logits, hidden = model(x_oh, hidden)          # logits: (1,1,vocab)
+        logits, hidden = model(x_oh, hidden) # logits: (1,1,vocab)
 
         next_idx = torch.argmax(logits[0, 0]).item()
         ch = i2c[next_idx]
@@ -163,8 +163,8 @@ def generate(model, c2i, i2c, vocab_size, seed="long long ago", length=500):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--generate", action="store_true", help="skip training, load checkpoint")
-    parser.add_argument("--seed",  default="long long ago", help="generation seed text")
-    parser.add_argument("--length", type=int, default=500,  help="number of chars to generate")
+    parser.add_argument("--seed", default="long long ago", help="generation seed text")
+    parser.add_argument("--length", type=int, default=500, help="number of chars to generate")
     args = parser.parse_args()
 
     text = load_data()

@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "gensim>=4.4.0",
     "numpy>=2.4.4",
     # "torch>=2.11.0",
     # "torchvision>=0.26.0",
+    "tiktoken>=0.12.0",
 ]

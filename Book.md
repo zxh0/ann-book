@@ -2,7 +2,7 @@
 
 > ANN for the Rest of Us
 >
-> 版本：v2026.05.09
+> 版本：v2026.05.11
 
 免责申明：本书还在很早期的草稿阶段，以下内容可能有很多逻辑混乱、甚至胡言乱语的地方，我会慢慢改进！
 
@@ -2413,11 +2413,37 @@ Byte tokens
 
 
 
-### 词元
+
+
+### 词元和分词
 
 编译原理，也要分词
 
 （Token）
+
+分词，代码：
+
+```python
+import re
+
+def tokenize(text):
+    raw = re.findall(r"\n|[A-Za-z']+|[^A-Za-z'\s]", text)
+    return ["<nl>" if t == "\n" else t.lower() for t in raw]
+
+txt = "To be, or not to be, that is the question."
+print(tokenize(txt))
+```
+
+输出：
+
+```
+['to', 'be', ',', 'or', 'not', 'to', 'be', ',', 
+ 'that', 'is', 'the', 'question', '.']
+```
+
+
+
+TODO：byte pair encoding (BPE)、tiktoken
 
 
 
@@ -2425,11 +2451,39 @@ Byte tokens
 
 One-hot
 
+```python
+def word_one_hot(txt: str):
+    # 1. 收集不重复的 token，排序
+    vocab = sorted(set(tokenize(txt)))
+
+    # 2. 生成 one-hot 矩阵
+    one_hot = np.eye(len(vocab), dtype=int)
+
+    # 3. 打印每个 token 及其 one-hot vector
+    max_len = max(len(repr(token)) for token in vocab)
+    for idx, token in enumerate(vocab):
+        print(f"{repr(token):<{max_len}}: {one_hot[idx].tolist()}")
+
+txt = "To be, or not to be, that is the question."
+word_one_hot(txt)
+```
+
+输出：
+
+```
+','       : [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+'.'       : [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+'be'      : [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+'is'      : [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+'not'     : [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+'or'      : [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+'question': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+'that'    : [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+'the'     : [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+'to'      : [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+```
 
 
-### 词袋模型
-
-Bag-of-Words
 
 
 
