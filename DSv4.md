@@ -34,7 +34,9 @@
 这里回顾一下标准的注意力公式，也就是论文《Attention Is All You Need》中的公式（1）：
 
 $$
-\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\left( \frac{QK^\top}{\sqrt{d_k}} \right) V \tag{1}
+\begin{aligned}
+\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\left( \frac{QK^\top}{\sqrt{d_k}} \right) V
+\end{aligned} \tag{1}
 $$
 
 我们知道，LLM的推理过程可以分为两个阶段：Prefill和Decode。由于Prefill阶段属于计算密集型，Decode阶段属于存储密集型，所以这两个阶段往往会被调度到不同硬件上去执行，这个就叫做PD分离。
@@ -47,13 +49,13 @@ $$
 
 ### Prefill
 
-在本文的示意图里，我们用矩形来表示**向量**或**矩阵**（如下图Q、K、V）。由于很难通过图形形状把向量或者矩阵的形状准确表达出来，所以一般都会以文字形式说明它们的形状。我们用紫色方块来表示可学习的**权重矩阵**，如下图四个W矩阵。我们用圆形来表示**标量**（圆形也用于表示计算，但是很容易区分），如下图$QK^T$矩阵里的元素。
+在本文的示意图里，我们用矩形来表示**向量**或**矩阵**（如下图Q、K、V）。由于很难通过图形形状把向量或者矩阵的形状准确表达出来，所以一般都会以文字形式说明它们的形状。我们用紫色方块来表示可学习的**权重矩阵**，如下图四个W矩阵。我们用圆形来表示**标量**（圆形也用于表示计算，但是很容易区分），如下图 $QK^T$ 矩阵里的元素。
 
 我们用圆形或椭圆来表示**计算**（如下图`softmax`），如果某个计算对应某论文中某公式，我们也会用黄色框框标识出来。为了简化示意图，我们经常会省略矩阵乘法，直接用权重矩阵本身来表示。基于这些约定，我们把上面公式（1）的计算过程大致画出来，重点展示Prefill阶段，如下图所示：
 
 <img src="./images/ds4/attn01.png" alt="attn" style="zoom:50%;" />
 
-上图$QK^T$矩阵中，有些元素是灰色的，表示加了因果掩码，这个细节这里就不展开解释了。不难看出，Q、K、V的计算、$QK^T$的计算、注意力计算，以及最后输出的计算，大部分都是可以在GPU上大规模并行处理的矩阵乘法运算，所以Prefill阶段的确是**计算密集型**的，瓶颈是GPU算力。
+上图 $QK^T$ 矩阵中，有些元素是灰色的，表示加了因果掩码，这个细节这里就不展开解释了。不难看出，Q、K、V的计算、 $QK^T$ 的计算、注意力计算，以及最后输出的计算，大部分都是可以在GPU上大规模并行处理的矩阵乘法运算，所以Prefill阶段的确是**计算密集型**的，瓶颈是GPU算力。
 
 
 
@@ -89,7 +91,9 @@ $$
 我们假设每个浮点数占用`f`个字节，Transformer架构一共有`l`个decoder层。那么根据上面这个图，我们可以粗略估计，KVCache占用的空间大约是：
 
 $$
-((n × k) + (n × v)) × h × l × f \tag{a}
+\begin{aligned}
+((n × k) + (n × v)) × h × l × f
+\end{aligned} \tag{a}
 $$
 
 
@@ -169,7 +173,7 @@ $$
 
 <img src="./images/ds4/csa09.png" alt="csa" style="zoom:50%;" />
 
-第二步，压缩。利用上面计算出的4个序列，计算出一个压缩序列，长度是原来的$\frac{1}{m}$。其中`m`就是CSA的压缩率，论文中的取值是4。这一步对应论文中的公式（11）和（12）：
+第二步，压缩。利用上面计算出的4个序列，计算出一个压缩序列，长度是原来的 $\frac{1}{m}$。其中`m`就是CSA的压缩率，论文中的取值是4。这一步对应论文中的公式（11）和（12）：
 
 $$
 \begin{aligned}
@@ -199,57 +203,63 @@ $$
 \end{aligned} \tag{13, 14}
 $$
 
-这个公式是针对某一个输入（$h_t$）来计算的，具体过程如下图蓝框所示。公式中出现的权重矩阵、输入输出和中间结果的形状，都画在图里了。（公式18可以暂时忽略，等会再回来看）
+这个公式是针对某一个输入（ $h_t$ ）来计算的，具体过程如下图蓝框所示。公式中出现的权重矩阵、输入输出和中间结果的形状，都画在图里了。（公式18可以暂时忽略，等会再回来看）
 
 <img src="./images/ds4/csa13.png" alt="csa" style="zoom:50%;" />
 
-和注意力机制类似，闪电索引也是多头的，一共有$n^I_h$个头（论文里这个值是64）。某个输入经过上面这套公式计算之后，就给每个闪电索引头算出来一个$q^I$向量，维度是$c^I$。再来看论文中的公式（15）和（16）：
+和注意力机制类似，闪电索引也是多头的，一共有 $n^I_h$ 个头（论文里这个值是64）。某个输入经过上面这套公式计算之后，就给每个闪电索引头算出来一个 $q^I$ 向量，维度是 $c^I$。再来看论文中的公式（15）和（16）：
 
 $$
 \begin{aligned}
 \left[\mathbf{w}_{t,1}^I;\, \mathbf{w}_{t,2}^I;\, \dots;\, \mathbf{w}_{t,n_h^I}^I\right] = \mathbf{w}_t^I &= \mathbf{h}_t \cdot W^w, \\
-I_{t,s} &= \sum_{h=1}^{n_h^I} w_{t,h}^I \cdot \operatorname{ReLU}\left( \mathbf{q}_{t,h}^I \cdot K_s^{\text{IComp}} \right),
+I_{t,s} &= \sum_{h=1}^{n_h^I} w_{t,h}^I \cdot \mathrm{ReLU}\left( \mathbf{q}_{t,h}^I \cdot K_s^{\text{IComp}} \right),
 \end{aligned} \tag{15, 16}
 $$
 
-其中公式（15）也是针对某个输入来计算的，结果是$n^I_h$个权重值，如下图所示：
+其中公式（15）也是针对某个输入来计算的，结果是 $n^I_h$ 个权重值，如下图所示：
 
 <img src="./images/ds4/csa15.png" alt="csa" style="zoom:50%;" />
 
-公式（16）也是针对某个输入计算的，索引也用`t`表示。对于某个输入，需要一个$q_t$向量，这个是公式（13）和（14）算出来的。另外，还需要一个$K^{IComp}$矩阵，索引用`s`表示。这个矩阵的计算过程和前一小节压缩KV的计算基本是一样的，可以去看上一小节的最后一幅图。于是，公式（16）的整体计算细节如下图所示：
+公式（16）也是针对某个输入计算的，索引也用`t`表示。对于某个输入，需要一个 $q_t$ 向量，这个是公式（13）和（14）算出来的。另外，还需要一个 $K^{IComp}$ 矩阵，索引用`s`表示。这个矩阵的计算过程和前一小节压缩KV的计算基本是一样的，可以去看上一小节的最后一幅图。于是，公式（16）的整体计算细节如下图所示：
 
 <img src="./images/ds4/csa16.png" alt="csa" style="zoom:50%;" />
 
-公式（16）看着特别复杂，但如果你忽略各种细节，其实就是针对每一个输入$h_t$，算出一个打分向量$I_t$，维度是n/m。有了打分之后，就可以用TopK算法去筛选稀疏KV了，也就是论文公式（17）：
+公式（16）看着特别复杂，但如果你忽略各种细节，其实就是针对每一个输入 $h_t$，算出一个打分向量 $I_t$，维度是n/m。有了打分之后，就可以用TopK算法去筛选稀疏KV了，也就是论文公式（17）：
 
 $$
-C_t^{\text{SprsComp}} = \left\{ C_s^{\text{Comp}} \;\bigg|\; I_{t,s} \in \text{Top-k}(I_{t,:}) \right\}. \tag{17}
+\begin{aligned}
+C_t^{\text{SprsComp}} = \left\{ C_s^{\text{Comp}} \mid I_{t,s}\in\mathrm{TopK}(I_{t,:}) \right\}
+\end{aligned} \tag{17}
 $$
 
-最后的效果就是，输入（形状是[n × d]）经过降维和压缩，得到了$C^{Comp}$，形状是[n/m × c]。对于第`t`个输入，有一个打分向量$I_t$，用它进行TopK筛选，得到了$C_t^{SprsComp}$，形状是[K × c]。整个过程如下图所示：
+最后的效果就是，输入（形状是[n × d]）经过降维和压缩，得到了 $C^{Comp}$，形状是[n/m × c]。对于第`t`个输入，有一个打分向量 $I_t$，用它进行TopK筛选，得到了 $C_t^{SprsComp}$，形状是[K × c]。整个过程如下图所示：
 
 <img src="./images/ds4/csa17.png" alt="csa" style="zoom:50%;" />
 
-在DeepSeek-V4论文里，d=7168，c=512，m=4，K=1024。于是，不管输入序列有多长，对于某个输入，这么一大套算下来，最后得到的就是一个[1024 × 512]的矩阵。而$C^{Comp}$矩阵，就是要放在KVCache里的数据。
+在DeepSeek-V4论文里，d=7168，c=512，m=4，K=1024。于是，不管输入序列有多长，对于某个输入，这么一大套算下来，最后得到的就是一个[1024 × 512]的矩阵。而 $C^{Comp}$ 矩阵，就是要放在KVCache里的数据。
 
 
 
 ### Shared Key-Value MQA
 
-CSA最后使用的，也不是原始的注意力机制，而是[MQA](https://arxiv.org/abs/1911.02150)。和原始注意力机制相比，MQA最大的变化就是，所有的注意力头共享一组KV。前面计算的，其实是K和V。对于某个输入，我们还需要计算$q$向量，这个对应论文公式（18）：
+CSA最后使用的，也不是原始的注意力机制，而是[MQA](https://arxiv.org/abs/1911.02150)。和原始注意力机制相比，MQA最大的变化就是，所有的注意力头共享一组KV。前面计算的，其实是K和V。对于某个输入，我们还需要计算 $q$ 向量，这个对应论文公式（18）：
 
 $$
-\left[\mathbf{q}_{t,1};\, \mathbf{q}_{t,2};\, \dots;\, \mathbf{q}_{t,n_h}\right] = \mathbf{q}_t = \mathbf{c}_t^Q \cdot W^{UQ}, \tag{18}
+\begin{aligned}
+\left[\mathbf{q}_{t,1};\, \mathbf{q}_{t,2};\, \dots;\, \mathbf{q}_{t,n_h}\right] = \mathbf{q}_t = \mathbf{c}_t^Q \cdot W^{UQ},
+\end{aligned} \tag{18}
 $$
 
-这个$q$向量，和公式（14）的$q^I$向量，在计算过程上基本是一样的，所以我把它们画在了一起。这里重新贴一下这个图：
+这个 $q$ 向量，和公式（14）的 $q^I$ 向量，在计算过程上基本是一样的，所以我把它们画在了一起。这里重新贴一下这个图：
 
 <img src="./images/ds4/csa13.png" alt="csa" style="zoom:50%;" />
 
 现在，所有东西都准备好了，利用这些数据进行标准注意力计算就可以了。这个对应论文公式（19）：
 
 $$
-o_{t,i} = \operatorname{CoreAttn}\left( \mathrm{query}=\mathbf{q}_{t,i},\, \mathrm{key}=C_t^{\mathrm{SprsComp}},\, \mathrm{value}=C_t^{\mathrm{SprsComp}} \right), \tag{19}
+\begin{aligned}
+o_{t,i} = \mathrm{CoreAttn}\left( \mathrm{query}=\mathbf{q}_{t,i},\, \mathrm{key}=C_t^{\mathrm{SprsComp}},\, \mathrm{value}=C_t^{\mathrm{SprsComp}} \right),
+\end{aligned} \tag{19}
 $$
 
 上面公式里的`t`是输入的索引，`i`是注意力头的索引。由于使用的是MQA注意力机制，所以只有Q带着`i`下标。总之，最重要的是，不管输入序列多长，对于某个输入来说，最后进入注意力计算的，就是这个经过降维&压缩&筛选后的稀疏KV，长度固定为K=1024。到目前为止的整个过程如下图所示：
@@ -260,32 +270,38 @@ $$
 
 ### Grouped Output Projection
 
-上面这个图显示的是某个注意力头的计算，对于多个头（一共$n_h=128$个），我们需要把这些$o_{t, i}$都拼接起来，然后做一次线性变化，得到最终输出，如下图所示：
+上面这个图显示的是某个注意力头的计算，对于多个头（一共 $n_h=128$ 个），我们需要把这些 $o_{t, i}$ 都拼接起来，然后做一次线性变化，得到最终输出，如下图所示：
 
 <img src="./images/ds4/csa-gop1.png" alt="gop" style="zoom:50%;" />
 
-在DeepSeek-V4论文里，c=512，$n_h$=128，所以拼接起来的$o_t$向量，维度是512×128=64K。这个计算量太大了，所以DeepSeek采取了一个“分组两级计算”的优化。
+在DeepSeek-V4论文里，c=512， $n_h$ = 128，所以拼接起来的 $o_t$ 向量，维度是512×128=64K。这个计算量太大了，所以DeepSeek采取了一个“分组两级计算”的优化。
 
-首先，把$n_h$个向量分成g组（论文里取值16）。也就是说，分成16组，每组8个。然后把每个组，投影成一个向量，维度是$d_g$（论文里取值1024）。最后把这些中间的向量拼起来，再做一次变换，得到最终需要的输出。这个计算过程如下图所示：
+首先，把 $n_h$ 个向量分成g组（论文里取值16）。也就是说，分成16组，每组8个。然后把每个组，投影成一个向量，维度是 $d_g$ （论文里取值1024）。最后把这些中间的向量拼起来，再做一次变换，得到最终需要的输出。这个计算过程如下图所示：
 
 <img src="./images/ds4/csa-gop2.png" alt="gop" style="zoom:50%;" />
 
 这里做一个简单的比较。我们知道：若矩阵A的形状是[a,b]，矩阵B的形状是[b,c]，那么矩阵乘 AB 计算量大约为 a⋅b⋅c。于是，优化前的计算量是：
 
 $$
-c × n_h × d = 512 × 128 × 7168 = 448M \tag{c}
+\begin{aligned}
+c × n_h × d = 512 × 128 × 7168 = 448M 
+\end{aligned} \tag{c}
 $$
 
 优化后，中间步骤计算量只是原来的1/7：
 
 $$
-c × \frac{n_h}{g} × d_g × g = 512 × 128 × 1024 = 64M \tag{d}
+\begin{aligned}
+c × \frac{n_h}{g} × d_g × g = 512 × 128 × 1024 = 64M
+\end{aligned} \tag{c}
 $$
 
 最后一步的计算量是原来的1/4：
 
 $$
-g × d_g × d = 16 × 1024 × 7168 = 112M \tag{e}
+\begin{aligned}
+g × d_g × d = 16 × 1024 × 7168 = 112M
+\end{aligned} \tag{e}
 $$
 
 最终，优化后整体计算量大概是优化前的40%。
@@ -339,10 +355,10 @@ $$
 和CSA一样，HCA也是先对隐藏状态H进行降维，这一步对应论文中的公式（20）和（21）：
 
 $$
-\begin{align*}
-C &= H \cdot W^{\text{KV}}, \tag{20}\\
-Z &= H \cdot W^{Z}, \tag{21}
-\end{align*}
+\begin{aligned}
+C &= H \cdot W^{\text{KV}},\\
+Z &= H \cdot W^{Z},
+\end{aligned} \tag{20, 21}
 $$
 
 这两个公式的计算如下图所示。其中两个W，以及C和Z的形状，都画在了图里。
@@ -352,29 +368,29 @@ $$
 降维之后是压缩。我们展开来看一下上图中的“压缩”操作，它对应论文中的公式（22）和（23）：
 
 $$
-\begin{align*}
-S_{m'i:m'(i+1)-1} &= \mathrm{Softmax_{row}}\left(Z_{m'i:m'(i+1)-1} + B\right), \tag{22} \\
-C_i^{\mathrm{Comp}} &= \sum_{j=m'i}^{m'(i+1)-1} S_j \odot C_j. \tag{23}
-\end{align*}
+\begin{aligned}
+S_{m'i:m'(i+1)-1} &= \mathrm{Softmax_{row}}\left(Z_{m'i:m'(i+1)-1} + B\right), \\
+C_i^{\mathrm{Comp}} &= \sum_{j=m'i}^{m'(i+1)-1} S_j \odot C_j.
+\end{aligned} \tag{22, 23}
 $$
 
-这两个公式都是针对一组输入来计算的，每一组有m'（论文取值128）个向量。首先，一组Z和偏置B，算出一组S（公式22）。然后，一组S和一组C，算出一个$C^{Comp}$向量（公式23）。这两个计算过程如下图所示：
+这两个公式都是针对一组输入来计算的，每一组有m'（论文取值128）个向量。首先，一组Z和偏置B，算出一组S（公式22）。然后，一组S和一组C，算出一个 $C^{Comp}$ 向量（公式23）。这两个计算过程如下图所示：
 
 <img src="./images/ds4/hca22.png" alt="hca" style="zoom:50%;" />
 
-总之，输入序列的形状是[n × d]，其中d=7168。计算出的$C^{Comp}$的形状是[n/m' × c]，其中m'=128，c=512。可以看到，长度缩小为原来的1/128，降维缩小为原来的1/14，效果还是挺明显的。
+总之，输入序列的形状是[n × d]，其中d=7168。计算出的 $C^{Comp}$ 的形状是[n/m' × c]，其中m'=128，c=512。可以看到，长度缩小为原来的1/128，降维缩小为原来的1/14，效果还是挺明显的。
 
 
 
 ### Shared Key-Value MQA
 
-HCA没有打分和筛选环境，所以直接来到MQA计算。对于某个输入，我们还是需要计算$q$向量，这个对应论文公式（24）和（25）：
+HCA没有打分和筛选环境，所以直接来到MQA计算。对于某个输入，我们还是需要计算 $q$ 向量，这个对应论文公式（24）和（25）：
 
 $$
-\begin{align*}
-\mathbf{c}_t^Q &= \mathbf{h}_t \cdot W^{DQ}, \tag{24} \\
-\left[\mathbf{q}_{t,1}; \mathbf{q}_{t,2}; \dots; \mathbf{q}_{t,n_h}\right] &= \mathbf{q}_t = \mathbf{c}_t^Q \cdot W^{UQ}, \tag{25}
-\end{align*}
+\begin{aligned}
+\mathbf{c}_t^Q &= \mathbf{h}_t \cdot W^{DQ}, \\
+\left[\mathbf{q}_{t,1}; \mathbf{q}_{t,2}; \dots; \mathbf{q}_{t,n_h}\right] &= \mathbf{q}_t = \mathbf{c}_t^Q \cdot W^{UQ},
+\end{aligned} \tag{24, 25}
 $$
 
 这个计算我们也很熟悉了，如下图所示。两个W矩阵的形状，中间状态的形状等，也是直接画在图里了。
@@ -384,7 +400,9 @@ $$
 现在Q、K、V都准备好了，可以带入标准注意力公式进行计算了。这一步对应论文里的公式（26）：
 
 $$
-\mathbf{o}_{t,i} = \mathrm{CoreAttn}\left(\mathrm{query} = \mathbf{q}_{t,i},\, \mathrm{key} = \mathbf{C}^{\mathrm{Comp}},\, \mathrm{value} = \mathbf{C}^{\mathrm{Comp}}\right), \tag{26}
+\begin{aligned}
+\mathbf{o}_{t,i} = \mathrm{CoreAttn}\left(\mathrm{query} = \mathbf{q}_{t,i},\, \mathrm{key} = \mathbf{C}^{\mathrm{Comp}},\, \mathrm{value} = \mathbf{C}^{\mathrm{Comp}}\right),
+\end{aligned} \tag{26}
 $$
 
 上面公式里的`t`是输入的索引，`i`是注意力头的索引。总之，对于某个输入来说，最后进入注意力计算的，就是这个经过降维&压缩后的KV，长度只是原来的1/128。现在我们把前面这些步骤都画在一起，如下图所示：
