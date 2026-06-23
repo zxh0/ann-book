@@ -5,6 +5,8 @@
 * 论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
 * 论文：[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)
 * 论文：[DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models](https://arxiv.org/abs/2512.02556)
+* 论文：[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)
+* 论文：[Hyper-Connections](https://arxiv.org/abs/2409.19606)
 * 配置：[Hugging Face config.json](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)
 
 
@@ -152,9 +154,9 @@ $$
 
 ## CSA（Compressed Sparse Attention）
 
-先来看CSA，下面是DeepSeek-V4论文中给出的架构图。这个架构图还是比较抽象的，所以我把它展开一步一步介绍。顺便说一下，CSA其实用了DeepSeek-V3.2提出的DSA。不过，看懂了CSA就没必要再去专门看DSA了。
+先来看CSA，下面是DeepSeek-V4论文中给出的架构图。这个架构图还是比较抽象的，所以我把它展开一步一步介绍。顺便说一下，CSA其实用了DeepSeek-V3.2提出的DSA（DeepSeek Sparse Attention）。不过，看懂了CSA就没必要再去专门看DSA了。
 
-<img src="./images/ds4/csa01.png" alt="01" style="zoom:50%;" />
+<img src="./images/ds4/v4f3.png" alt="01" style="zoom:50%;" />
 
 
 
@@ -182,7 +184,7 @@ C_i^\text{Comp} &= \sum_{j=mi}^{m(i+1)-1} S_j^a \odot C_j^a + \sum_{j=m(i-1)}^{m
 \end{aligned} \tag{11, 12}
 $$
 
-压缩是分组计算的，每一组m个。为了便于理解，我们只取其中的一组（m个），把这两个计算展开。哈达吗积（⊙）和累加画出来太繁琐了，所以我们就用“压缩”来表示。于是上面的两个公式就画成了下面这样：
+压缩是分组计算的，每一组m个。为了便于理解，我们只取其中的一组（m个），把这两个计算展开。哈达玛积（⊙）和累加画出来太繁琐了，所以我们就用“压缩”来表示。于是上面的两个公式就画成了下面这样：
 
 <img src="./images/ds4/csa11.png" alt="csa" style="zoom:50%;" />
 
@@ -270,7 +272,7 @@ $$
 
 ### Grouped Output Projection
 
-上面这个图显示的是某个注意力头的计算，对于多个头（一共 $n_h=128$ 个），我们需要把这些 $o_{t, i}$ 都拼接起来，然后做一次线性变化，得到最终输出，如下图所示：
+上面这个图显示的是某个注意力头的计算，对于多个头（一共 $n_h=128$ 个），我们需要把这些 $o_{t, i}$ 都拼接起来，然后做一次线性变换，得到最终输出，如下图所示：
 
 <img src="./images/ds4/csa-gop1.png" alt="gop" style="zoom:50%;" />
 
@@ -346,7 +348,7 @@ $$
 
 现在来看HCA，下面是论文里给出的架构图。这个图同样也是比较抽象，所以我们还是需要展开来细看。相比CSA，HCA要简单一些（没有筛选逻辑）。如果你已经理解了CSA，那么HCA就比较好懂了，所以这一小节可能写的没那么详细。
 
-<img src="./images/ds4/hca01.png" alt="01" style="zoom:50%;" />
+<img src="./images/ds4/v4f4.png" alt="01" style="zoom:50%;" />
 
 
 
@@ -384,7 +386,7 @@ $$
 
 ### Shared Key-Value MQA
 
-HCA没有打分和筛选环境，所以直接来到MQA计算。对于某个输入，我们还是需要计算 $q$ 向量，这个对应论文公式（24）和（25）：
+HCA没有打分和筛选环节，所以直接来到MQA计算。对于某个输入，我们还是需要计算 $q$ 向量，这个对应论文公式（24）和（25）：
 
 $$
 \begin{aligned}
@@ -443,13 +445,210 @@ $$
 
 
 
-## MoE
+## DeepSeek MoE（Mixture of Experts）
 
-和DeepSeek-V3一样。
+DeepSeek-V4沿用了DeepSeek-V3的MoE架构，而V3的MoE也只是在原来DeepSeekMoE基础上进行了一些微调。这个DeepSeekMoE，其实早在V2、V1里也已经在用了。这一小节，我们使用DeepSeek-V3里的公式，来讲解DeepSeekMoE。下面是DeepSeek-V3论文里的MoE架构图，比CSA和HCA好理解：
+
+<img src="./images/ds4/moe-f2.png" alt="moe" style="zoom:50%;" />
 
 
 
-## mHC
+### 核心公式
+
+MoE是按token计算的，请看论文里的公式（12）：
+
+$$
+\begin{aligned}
+h_t' = \mathbf{u}_t + \sum_{i=1}^{N_s} \text{FFN}_i^{(s)}(\mathbf{u}_t) + \sum_{i=1}^{N_r} g_{i,t} \text{FFN}_i^{(r)}(\mathbf{u}_t), 
+\end{aligned} \tag{12}
+$$
+
+在上面的公式里， $u_t$ 表示某个输入， $h'_t$ 表示它对应的输出。等号右边一共有三项：
+
+* 其中第一项就是输入自己，这个就是标准的残差连接写法。不过DeepSeek-V4里已经换成了mHC了，这个后面的小节会说明。
+* 第二项表示共享专家（Shared Expert），一共 $N_s$ 个（V4取值1）。共享专家是直接被激活的，它们的输出会做一个累加。
+* 第三项表示路由专家（Routed Expert），一共 $N_r$ 个（V4取值384）。如果 $g_{i,t} \ne 0$ ，则该专家被激活。在V4里，每个token只会激活K个（V4取值6）路由专家。这里控制谁被激活的 $g_{i,t}$ 稍后介绍。
+
+顺便说一下，在DeepSeek-V3里，前3层是没有使用MoE的，就是普通（Dense）FFN。但是在V4里，前三层用的也是MoE，只是用了特殊的Hash路由，这个原论文里并没有展开说，这里也不详细介绍了。上面的公式可以画成下图这样：
+
+<img src="./images/ds4/moe12.png" alt="moe" style="zoom:50%;" />
+
+现在我们来看 $g_{i,t}$ 是怎么算出来的，稍微有点复杂，对应论文中的公式（13）、（14）和（15）：
+
+$$
+\begin{aligned}
+g_{i,t} &= \frac{g'_{i,t}}{\sum_{j=1}^{N_r} g'_{j,t}}, \\
+g'_{i,t} &=
+\begin{cases}
+s_{i,t}, & s_{i,t} \in \mathrm{Topk}\big(\{s_{j,t} \mid 1 \le j \le N_r\}, K_r\big), \\
+0, & \text{otherwise},
+\end{cases} \\
+s_{i,t} &= \mathrm{Sigmoid}\big(\mathbf{u}_t^\top \mathbf{e}_i\big),
+\end{aligned} \tag{13, 14, 15}
+$$
+
+我们要倒着来看这三个公式。公式里的`t`是输入的索引，`i`是路由专家的索引。
+
+* 公式（15）。某个路由专家 $\mathrm{FFN}_i^{(r)}$ ，有一个对应的向量 $e_i$ 。它和某个输入的转置 $u_t^T$ 点乘一下，就得到一个标量。这个标量在过一个激活函数，就得到了 $s_{i,t}$ 。在DeepSeek-V3里，这个激活函数是`Sigmoid(·)`。但是在V4里，换成了`Sqrt(Softplus(·))`。
+* 公式（14）。对于某个输入 $u_t$ ，上面的公式一共会算出 $N_r$ 个标量（ $s_{1, t}$ ~ $s_{Nr, t}$ ）。这些标量做一个TopK筛选，选出K个来，其余都置成0，这样就得到了另外一个序列（ $g'_{1, t}$ ~ $g'_{Nr, t}$ ）。
+* 公式（13）。对上面公式得到的序列，做一个简单的归一化处理。
+
+这三个公式可以画在一起，如下图所示：
+
+<img src="./images/ds4/moe13.png" alt="moe" style="zoom:50%;" />
+
+
+
+### 神经网络视角
+
+前面的介绍，是站在MoE公式的角度来画图的。如果我们使用CSA和HCA那种角度，使用矩阵乘法理解MoE，也是可以的。一个MoE，其实就是一个降维再升维的两层FFN，中间的隐藏维度是3072。我们用U和V来表示这两个矩阵，于是，
+
+<img src="./images/ds4/moe-mm.png" alt="moe" style="zoom:50%;" />
+
+在DeepSeek-V4里，每层有1个共享专家，384个路由专家，共385个专家。每个token每次只激活其中的6个路由专家，加上共享专家，一共激活7个专家。所以，就MoE而言，每次激活的专家就只有1/55。我们估计一下参数量：
+
+* 上图中，每个紫色方块都包含7168x3072=21M个参数。
+* 一共385个专家，所以是385x2x21M=16170M（1.6B）
+* 一共61层，所以MoE总共是61x16170M=986370M（98B）
+* 每次激活1/55的专家，986370M/55=17934M（1.8B）
+
+
+
+## mHC（Manifold-Constrained Hyper-Connections）
+
+这一节介绍一下mHC，这个对应DeepSeek-V4架构图里的“Residual Mixing”，如下图所示：
+
+<img src="./images/ds4/v4f2.png" alt="moe" style="zoom:50%;" />
+
+为了便于理解，我们先从没有残差连接的版本开始说起，然后介绍残差连接，然后再介绍标准的超连接（HC），最后介绍mHC。
+
+
+
+### 没有残差连接
+
+我们把CSA/HCA或者MoE，都当作独立的层，抽象成一个输入函数。于是，不考虑残差连接，我们可以写出某一层的计算公式：
+
+$$
+\begin{aligned}
+X_{l+1} = \mathcal{F}_l(X_l)
+\end{aligned} \tag{f}
+$$
+
+这里，我们使用DeepSeek-V4论文里的写法。其中 $X$ 表示输入输出， $l$ 表示层数， $\mathcal{F}_l$ 表示某一层的函数。这个公式是相当简单的，假如神经网络有3层，公式展开以后，画出来是下面这样：
+
+<img src="./images/ds4/mhc1.png" alt="mhc" style="zoom:50%;" />
+
+
+
+### 残差连接（Residual Connections）
+
+上面这种网络，层次多了以后，是很不好训练的，原因在于反向传播的梯度消失和梯度爆炸（本文不解释这个细节）。所以我们稍微调整一下结构，把输入加到函数输出里。也就是说，让网络只学习差值。下面是新的计算公式：
+
+$$
+\begin{aligned}
+X_{l+1} = X_l + \mathcal{F}_l(X_l)
+\end{aligned} \tag{g}
+$$
+
+还是以3层网络为例，上面的公式展开后，画出来是下面这样：
+
+<img src="./images/ds4/mhc2.png" alt="mhc" style="zoom:50%;" />
+
+
+
+### Standard Hyper-Connections
+
+标准超连接（HC）对上面的残差连接进行了扩展，然后就变成了DeepSeek-V4论文里公式（1）描述的样子：
+
+$$
+\begin{aligned}
+X_{l+1} = B_l X_l + C_l \mathcal{F}_l(A_l X_l)
+\end{aligned} \tag{1}
+$$
+
+这个公式还是有点难理解的，所以可以拆开一点一点理解。
+
+* 超连接（HC）的实际效果，是把原来的残差连接，扩展 $n_{hc}$ 倍（V4论文里取值是4）。如果我们把 $n_{hc}$ 设置成1，那么HC就退化成了普通的残差连接。
+* 为了达到这个效果，输入输出也要扩展 $n_{hc}$ 倍。原来的输入形状是 $[1×d]$ ，扩展后就变成了 $[n_{hc} \times d]$ 。如果是第一层的输入，直接把原始输入复制 $n_{hc}$ 份就好了。
+* 然而，我们并不改变每一层的函数 $F$ 。于是，我们需要使用矩阵 $A$ 给扩展后的输入做一个线性变换，然后再送入函数 $F$ 。这就是公式里 $A_l X_l$ 的含义（下图蓝色箭头）。
+* 函数的输出形状还是 $[1×d]$ ，于是我们需要矩阵 $C$ ，再做一次线性变换，把输出形状也变成 $[n_{hc} \times d]$ 。这就是公式里 $C_l \mathcal{F}_l(...)$ 的含义（下图绿色箭头）。
+* 然后就是真正的残差值计算了，这里用了矩阵 $B$ 和输入相乘。这就是公式里 $B_l X_l$ 的含义（下图红色箭头）。
+
+这个公式完整的计算细节，见下图（图里 $n_{hc}$ 取值3）。这里提到所有矩阵的形状，都画在图里了。
+
+<img src="./images/ds4/mhc3.png" alt="mhc" style="zoom:50%;" />
+
+
+
+### mHC
+
+超连接看起来很强大，但是有一个问题，就是会重蹈无残差连接网络的覆辙：梯度消失和爆炸。为了比较简单的推导出这个结论，我们把上面的公式（1）简化一下，先忽略残差连接（毕竟它只是差异），只留下输入。然后公式就变成了这样：
+
+$$
+\begin{aligned}
+X_{l+1} = B_l X_l
+\end{aligned} \tag{h}
+$$
+
+你看，如果你把 $B_l$ 看成一个函数，它是不是就变成了本小节最开始的公式（f）。于是，问题就又出现了。既然问题出在矩阵 $B_l$ ，那么就解决这个问题。DeepSeek-V4想到的办法就是约束这个矩阵，让它成为一个双随机矩阵（doubly stochastic），这就是mHC。
+
+所谓双随机矩阵，是个方阵，简单说，你单看它的任何一行、任何一列，都好像概率归一化了（每个元素都不小于0，且总和为1）。如果用数学语言表达出来，那么就是DeepSeek-V4论文里的公式（2）：
+
+$$
+\begin{aligned}
+B_l \in \mathcal{M} := \{ M \in \mathbb{R}^{n \times n} \mid M\mathbf{1}_n = \mathbf{1}_n,\ \mathbf{1}_n^T M = \mathbf{1}_n^T,\ M \ge 0\}. 
+\end{aligned} \tag{2}
+$$
+
+双随机矩阵有个特点，就是两个双随机矩阵相乘，得到的还是一个同样形状的双随机矩阵。有了这个特点，那么前面那个简化的公式（h），无论套多少层，都不会有问题了。而标准HC带来的问题，也就解决了。
+
+
+
+### Dynamic Parameterization
+
+在HC原论文里，HC分为静态和动态两套。在静态HC里，A、B、C这些矩阵都是训练出来的，就是我们前面画的那样。而在动态HC里，A、B、C这些矩阵都是动态算出来的。这个计算过程，对应DeepSeek-V4论文里的公式（3）、（4）和（5）：
+
+$$
+\begin{aligned}
+\tilde{A}_l &= \alpha_l^{\text{pre}} \cdot \left(\hat{X}_l W_l^{\text{pre}}\right) + S_l^{\text{pre}}, \\
+\tilde{B}_l &= \alpha_l^{\text{res}} \cdot \mathrm{Mat}\left(\hat{X}_l W_l^{\text{res}}\right) + S_l^{\text{res}}, \\
+\tilde{C}_l &= \alpha_l^{\text{post}} \cdot \left(\hat{X}_l W_l^{\text{post}}\right)^\top + S_l^{\text{post}},
+\end{aligned} \tag{3,4,5}
+$$
+
+这三个公式里， $W$ 属于可学习权重矩阵， $S$ 属于可学习偏置， $\alpha$ 属于可学习系数。这三个公式相对比较简单，就不画图了。具体计算细节，可以参考V4论文。
+
+
+
+### Applying Parameter Constraints
+
+上面算出来的动态 $\tilde{A}$ 、 $\tilde{B}$ 、 $\tilde{C}$ 矩阵，并不是直接就用的。尤其是 $\tilde{B}$ ，还不是双随机的。所以还需要进一步处理。其中 $\tilde{A}$ 和 $\tilde{C}$ 处理起来比较容易，见DeepSeek-V4论文公式（6）和（7）：
+
+$$
+\begin{aligned}
+A_l &= \sigma(\tilde{A}_l), \\
+C_l &= 2\sigma(\tilde{C}_l).
+\end{aligned} \tag{6,7}
+$$
+
+但是 $\tilde{B}$ 处理起来比较麻烦，要用到一种叫做”Sinkhorn-Knopp”的算法，见论文里公式（8）：
+
+$$
+\begin{aligned}
+M^{(t)} &= \mathcal{T}_r\big(\mathcal{T}_c\big(M^{(t-1)}\big)\big), \\
+M^{(0)} &= \mathcal{exp}(\tilde{B_l}) 
+\end{aligned} \tag{8}
+$$
+
+这是个递归公式，论文里说递归调用20次差不多就可以了： $\tilde{B}_l = M^{(20)}$ 。这几个公式也比较简单，也不画图了。具体计算细节，可以参考V4论文。
+
+
+
+## 其他细节
+
+
+
+### RoPE
 
 TODO
 
