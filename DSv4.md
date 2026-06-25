@@ -1,17 +1,10 @@
-# 图解DeepSeek-V4(Pro)推理公式
+# 图解DeepSeek-V4(Pro)核心公式
 
-主要参考资料：
+如果你和我一样，对人工智能（AI）、深度学习（DL）、人工神经网络（ANN）、大语言模型（LLM）感兴趣，那么可能学着学着就学到了DeepSeek模型，然后就准备看它的论文，然后就被论文里的数学公式吓退了。如果你符合我描述的情况，那么这篇文章也许可以帮助到你。
 
-* 论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
-* 论文：[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)
-* 论文：[DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models](https://arxiv.org/abs/2512.02556)
-* 论文：[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)
-* 论文：[Hyper-Connections](https://arxiv.org/abs/2409.19606)
-* 配置：[Hugging Face config.json](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)
+本文主要介绍DeepSeek-V4论文里的数学公式，而且主要是站在“推理”的角度。这篇论文很长（共58页），里面涉及到的内容很多，我也没有全部看明白。不过，我基本上把里面的数学公式看懂了。为了帮助自己理解这些公式，我画了好多图。我觉得这些图可能对其他读者也有用，所以就写了这篇文章。
 
-
-
-和所有论文一样，DeepSeek-V4的论文（对于普通人来说）挺难读的。DeepSeek-V4论文里包含了大量信息，但最难懂的，还是数学公式。本文将站在“推理”的角度，用大量示意图来帮助读者理解DeepSeek-V4论文中的相关公式。
+本文没有用AI润色，文字都是自己敲的，图都是自己画的，原滋原味。有一些我不确定的地方，我问了AI。一些AI的回答，我以引用的形式贴到了文字中，一眼就能看出来。我还在慢慢学习。本文可能难免有错误和疏漏，如果我发现的话，会在下一版改进。
 
 
 
@@ -572,7 +565,7 @@ $$
 * 为了达到这个效果，输入输出也要扩展 $n_{hc}$ 倍。原来的输入形状是 $[1×d]$ ，扩展后就变成了 $[n_{hc} \times d]$ 。如果是第一层的输入，直接把原始输入复制 $n_{hc}$ 份就好了。
 * 然而，我们并不改变每一层的函数 $F$ 。于是，我们需要使用矩阵 $A$ 给扩展后的输入做一个线性变换，然后再送入函数 $F$ 。这就是公式里 $A_l X_l$ 的含义（下图蓝色箭头）。
 * 函数的输出形状还是 $[1×d]$ ，于是我们需要矩阵 $C$ ，再做一次线性变换，把输出形状也变成 $[n_{hc} \times d]$ 。这就是公式里 $C_l \mathcal{F}_l(...)$ 的含义（下图绿色箭头）。
-* 然后就是真正的残差值计算了，这里用了矩阵 $B$ 和输入相乘。这就是公式里 $B_l X_l$ 的含义（下图红色箭头）。
+* 然后就是把输入加到残差值里，这里需要使用矩阵 $B$ 和输入相乘。这就是公式里 $B_l X_l$ 的含义（下图红色箭头）。
 
 这个公式完整的计算细节，见下图（图里 $n_{hc}$ 取值3）。这里提到所有矩阵的形状，都画在图里了。
 
@@ -644,11 +637,18 @@ $$
 
 
 
-## 其他细节
+## 总结
+
+本文主要站在推理视角，介绍了DeepSeek-V4核心公式。DeepSeek-V4论文信息量太大了，里面还有很多的细节，本文没有讲到，例如位置编码（RoPE）、Muon优化器等等。等我对这篇论文有了更深的理解，会继续写其他文章深入介绍。
 
 
 
-### RoPE
+## 主要参考资料
 
-TODO
+* 论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+* 论文：[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)
+* 论文：[DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models](https://arxiv.org/abs/2512.02556)
+* 论文：[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)
+* 论文：[Hyper-Connections](https://arxiv.org/abs/2409.19606)
+* 配置：[Hugging Face config.json](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)
 
