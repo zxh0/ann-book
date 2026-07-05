@@ -170,10 +170,10 @@ $$
 我们可以把上面等式里最右边的那项，写成矩阵乘法的形式，继续写这个等式：
 
 $$
-=
+\dots =
 \begin{bmatrix}
 \cos \Delta & \sin \Delta \\
-- \sin \Delta & \cos \Delta
+-\sin \Delta & \cos \Delta
 \end{bmatrix}
 \begin{bmatrix}
 \sin \theta \\
@@ -181,7 +181,7 @@ $$
 \end{bmatrix} = 
 \begin{bmatrix}
 \cos \Delta & \sin \Delta \\
-- \sin \Delta & \cos \Delta
+-\sin \Delta & \cos \Delta
 \end{bmatrix}
 \begin{bmatrix}
 \mathrm{PE}(pos, 2i) \\
@@ -198,7 +198,7 @@ $$
 \end{bmatrix} =
 \begin{bmatrix}
 \cos \Delta & \sin \Delta \\
-- \sin \Delta & \cos \Delta
+-\sin \Delta & \cos \Delta
 \end{bmatrix}
 \begin{bmatrix}
 \mathrm{PE}(pos, 2i) \\
@@ -220,7 +220,7 @@ $$
 \end{bmatrix} =
 \begin{bmatrix}
 \cos \Delta_1 & \sin \Delta_1 & 0 & 0 & \dots & 0 & 0 \\
-- \sin \Delta_1 & \cos \Delta_1 & 0 & 0 & \dots & 0 & 0 \\
+-\sin \Delta_1 & \cos \Delta_1 & 0 & 0 & \dots & 0 & 0 \\
 0 & 0 & \cos \Delta_2 & \sin \Delta_2 & \dots & 0 & 0 \\
 0 & 0 & - \sin \Delta_2 & \cos \Delta_2 & \dots & 0 & 0 \\
 \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
@@ -327,8 +327,7 @@ $$
 现在我们重点来看这个 $R_m$ 矩阵，这就是RoPE论文里的公式（15）：
 
 $$
-\begin{aligned}
-R_m &=
+R_m =
 \begin{bmatrix}
 \cos m\theta_1 & -\sin m\theta_1 & 0 & 0 & \dots & 0 & 0 \\
 \sin m\theta_1 & \cos m\theta_1 & 0 & 0 & \dots & 0 & 0 \\
@@ -338,8 +337,6 @@ R_m &=
 0 & 0 & 0 & 0 & \dots & \cos m\theta_{d/2} & -\sin m\theta_{d/2} \\
 0 & 0 & 0 & 0 & \dots & \sin m\theta_{d/2} & \cos m\theta_{d/2} 
 \end{bmatrix}
-
-\end{aligned}
 \tag{R15}
 $$
 
@@ -386,9 +383,7 @@ $$
 最后介绍一下RoPE论文里提到的公式（34）。由于旋转矩阵 $R_m$ 里大部分元素都是0，所以算矩阵乘法并不是很划算。RoPE给出了优化方案：把矩阵乘法改成两次向量哈达玛积（逐元素相乘）和一次向量加法。下面是这个公式：
 
 $$
-\begin{aligned}
-R_m \mathbf{x} &=
-\begin{pmatrix}
+R_m \mathbf{x} = \begin{bmatrix}
 x_1 \\
 x_2 \\
 x_3 \\
@@ -396,9 +391,8 @@ x_4 \\
 \vdots \\
 x_{d-1} \\
 x_d
-\end{pmatrix}
-\otimes
-\begin{pmatrix}
+\end{bmatrix} \otimes
+\begin{bmatrix}
 \cos m\theta_1 \\
 \cos m\theta_1 \\
 \cos m\theta_2 \\
@@ -406,9 +400,8 @@ x_d
 \vdots \\
 \cos m\theta_{d/2} \\
 \cos m\theta_{d/2}
-\end{pmatrix}
-+
-\begin{pmatrix}
+\end{bmatrix} +
+\begin{bmatrix}
 -x_2 \\
 x_1 \\
 -x_4 \\
@@ -416,9 +409,8 @@ x_3 \\
 \vdots \\
 -x_d \\
 x_{d-1}
-\end{pmatrix}
-\otimes
-\begin{pmatrix}
+\end{bmatrix} \otimes
+\begin{bmatrix}
 \sin m\theta_1 \\
 \sin m\theta_1 \\
 \sin m\theta_2 \\
@@ -426,9 +418,7 @@ x_{d-1}
 \vdots \\
 \sin m\theta_{d/2} \\
 \sin m\theta_{d/2}
-\end{pmatrix}
-
-\end{aligned}
+\end{bmatrix}
 \tag{R34}
 $$
 
