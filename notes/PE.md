@@ -206,7 +206,7 @@ $$
 \end{bmatrix}
 $$
 
-我们把`i`完全展开，于是上面这个等式可以写成下面这样：
+那么上面这个等式的几何意义是啥呢？我们把位置`pos`的位置编码（二维向量）顺时针旋转 $Delta$ ，就得到了位置`pos+k`的位置编码。如果我们把`i`完全展开，那么上面这个等式可以写成下面这样：
 
 $$
 \begin{bmatrix}
@@ -280,7 +280,7 @@ q_{m, 2i+1}
 \end{bmatrix}
 $$
 
-那你可能要问了，上面这个公式有啥含义呢？含义就是把等号右边的向量，逆时针旋转 $m\theta$ 弧度，得到等号左边的向量，这就是RoPE为啥叫旋转位置编码的缘故。其中 $\theta$ 是和维度方向的`i`相关的，可以通过下面的公式得到：
+那上面这个公式又有啥含义呢？含义就是把等号右边的向量，逆时针旋转 $m\theta$ 弧度，得到等号左边的向量，这就是RoPE为啥叫旋转位置编码的缘故。其中 $\theta$ 是和维度方向的`i`相关的，可以通过下面的公式得到：
 
 $$
 \theta_i = 10000^{-2i / d}
@@ -323,6 +323,10 @@ $$
 $$
 \mathbf{q}_m' = R_m \mathbf{q}_m
 $$
+
+看到这里，你是不是也看出RoPE和SinPE的相似之处了？它们的差别在于：SinPE是通过旋转实现两个位置编码之间的线性变换；而RoPE则是直接把这个旋转施加到Q或者K上面。这个差别如下图所示：
+
+<img src="../images/notes//pe/ro.png" alt="ro" style="zoom:50%;" />
 
 现在我们重点来看这个 $R_m$ 矩阵，这就是RoPE论文里的公式（15）：
 
@@ -369,7 +373,8 @@ $$
 \begin{aligned}
 \mathbf{q}_m^\top \mathbf{k}_n &= (R_m W_q \mathbf{x}_m)^\top (R_n W_k \mathbf{x}_n) \\
 &= \mathbf{x}_m^\top W_q^\top (R_m^\top R_n) W_k \mathbf{x}_n \\
-&= \mathbf{x}_m^\top W_q^\top R_{n-m} W_k \mathbf{x}_n
+&= \mathbf{x}_m^\top W_q^\top R_{n-m} W_k \mathbf{x}_n \\
+&= \mathbf{q}_m^\top R_{n-m} \mathbf{k}_n
 \end{aligned}
 \tag{R16}
 $$
