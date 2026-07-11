@@ -49,7 +49,7 @@ $$
 
 $$
 \begin{aligned}
-\mathrm{Attention}(Q, K, V) = \mathrm{softmax}(\frac{Q K^\top}{\sqrt{d}})V
+\mathrm{Attention}(Q, K, V) = \mathrm{softmax}(\frac{Q K^\top}{\sqrt{d_k}})V
 \end{aligned}
 \tag{A1}
 $$
@@ -57,7 +57,7 @@ $$
 在本文中，我们用`n`来表示输入序列的长度，用`d`来表示词嵌入和隐藏向量的维度。上面这个公式，考虑的是整个输入序列，因此Q、K、V都是矩阵。为了方便画图，这里我们取`n=8`，并且只考虑第8个Query的注意力计算，于是上面的公式可以具体化为下面这样（下标从0开始）：
 
 $$
-\mathbf{a}_7 = \mathrm{softmax}(\frac{\mathbf{q}_7 K^\top}{\sqrt{d}})V
+\mathbf{a}_7 = \mathrm{softmax}(\frac{\mathbf{q}_7 K^\top}{\sqrt{d_k}})V
 $$
 
 我们可以把上面这个公式画成下面这样：
@@ -254,7 +254,7 @@ $$
 
 ## 旋转位置编码（RoPE）
 
-如果你已经理解了SinPE，那么RoPE就相对好懂了。我们总结一下，SinPE是直接根据位置算出位置编码，然后叠加到词嵌入上。RoPE不同，它是直接作用在Q和K上（旋转它们）。我们以Q为例，如下图所示：
+如果你已经理解了SinPE，那么RoPE就相对好懂了。我们总结一下，SinPE是直接根据位置算出位置编码，然后叠加到词嵌入上。RoPE不同，它是直接作用在Q和K上（旋转它们）。我们以Q为例，如下图所示（纠正：Q和Q'的维度应该是$d_k$）：
 
 <img src="../images/notes//pe/rope1.png" alt="RoPE" style="zoom:50%;" />
 
