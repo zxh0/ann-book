@@ -14,10 +14,10 @@
 本文假设读者已经对标准的Transformer架构和注意力机制非常熟悉了，如果还不熟悉的话，可以先熟读2017年的那篇经典论文。这里我们直接给出标准的单头注意力计算公式：
 
 $$
-\mathrm{Attention}(Q, K, V) = \mathrm{softmax}(\frac{Q K^\top}{\sqrt{d}}) V
+\mathrm{Attention}(Q, K, V) = \mathrm{softmax}(\frac{Q K^\top}{\sqrt{d_k}}) V
 $$
 
-我们用`n`来表示输入序列的长度，用`d`来表示隐藏向量的维度。为了便于画图理解，在本文中，我们取`n=8`，`d=3`。于是，我们可以把上面这个公式画成下面这样：
+为了简化讨论，我们用`d`来表示Q、K、V的维度，用`n`来表示输入序列的长度。为了便于画图理解，在本文中，我们取`n=8`，`d=3`。于是，我们可以把上面这个公式画成下面这样：
 
 <img src="../images/notes//fa/attn.png" alt="FA" style="zoom:50%;" />
 
