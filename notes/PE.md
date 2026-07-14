@@ -62,7 +62,7 @@ $$
 
 我们可以把上面这个公式画成下面这样：
 
-<img src="../images/notes//pe/attn.png" alt="attn" style="zoom:50%;" />
+<img src="../images/notes/pe/attn.png" alt="attn" style="zoom:50%;" />
 
 由于缩放和Softmax函数并不会影响对于位置编码的理解，因此我们可以暂时忽略它们，这样就可以进一步简化公式，写成下面这样：
 
@@ -84,7 +84,7 @@ $$
 
 位置编码的思路很简单，就是给输入序列的每个位置，产生一个只和位置有关的编码（维度也是`d`），然后和输入叠加在一起，这样模型就可以注意到位置信息。我们把这个过程画出来，看起来就是下面这样：
 
-<img src="../images/notes//pe/sinpe1.png" alt="PE" style="zoom:50%;" />
+<img src="../images/notes/pe/sinpe1.png" alt="PE" style="zoom:50%;" />
 
 我们沿用《Attention Is All You Need》论文里的写法，用`pos`来表示某位置，用`PE`来表示位置编码函数，那么某个输入叠加位置编码后的结果，可以用下面这个公式来计算：
 
@@ -111,7 +111,7 @@ $$
 
 我们假设有一个很小的模型（词嵌入维度`d=8`）和一个很短的输入（`n=4`），那么完整的位置编码表可以画成下面这样。其中绿色的格子，都是要用`sin`函数去算的，粉色的格子，都是需要用`cos`函数去算。然后你只要把`pos`和`2i`带入到`sin`或者`cos`函数里，就能算出这个格子里的位置编码值。
 
-<img src="../images/notes//pe/sinpe2.png" alt="SinPE" style="zoom:50%;" />
+<img src="../images/notes/pe/sinpe2.png" alt="SinPE" style="zoom:50%;" />
 
 顺便说一下，论文里说，我们可以给输入注入相对或者绝对位置信息。前面的公式里，位置编码是根据`pos`直接算出来的，所以SinPE注入的是绝对位置信息。上面这个图可能过于简化了，我从网上找了一个更好的图（`d=64`，`n=100`），可以更直观的感受SinPE：
 
@@ -256,11 +256,11 @@ $$
 
 如果你已经理解了SinPE，那么RoPE就相对好懂了。我们总结一下，SinPE是直接根据位置算出位置编码，然后叠加到词嵌入上。RoPE不同，它是直接作用在Q和K上（旋转它们）。我们以Q为例，如下图所示（纠正：Q和Q'的维度应该是$d_k$）：
 
-<img src="../images/notes//pe/rope1.png" alt="RoPE" style="zoom:50%;" />
+<img src="../images/notes/pe/rope1.png" alt="RoPE" style="zoom:50%;" />
 
 由于RoPE是作用在Q和K上，那就不能只计算一次，而是每一个decoder层都要算一次。对比SinPE，这显然是增加了计算量的，但是可以接受。RoPE旋转Q或者K的方式，跟SinPE计算位置编码是有些相似之处的，比如都是按词嵌入维度两两一组计算。还是以Q为例，如下图所示：
 
-<img src="../images/notes//pe/rope2.png" alt="RoPE" style="zoom:50%;" />
+<img src="../images/notes/pe/rope2.png" alt="RoPE" style="zoom:50%;" />
 
 那具体是如何进行旋转的呢？还是以Q为例，我们仿造SinPE的写法，给出下面这个公式。这里我们参考RoPE论文的写法，把表示输入位置的`pos`换成了`m`，而`i`的含义和SinPE是完全一样的。
 
@@ -326,7 +326,7 @@ $$
 
 看到这里，你是不是也看出RoPE和SinPE的相似之处了？它们的差别在于：SinPE是通过旋转实现两个位置编码之间的线性变换；而RoPE则是直接把这个旋转施加到Q或者K上面。这个差别如下图所示：
 
-<img src="../images/notes//pe/ro.png" alt="ro" style="zoom:50%;" />
+<img src="../images/notes/pe/ro.png" alt="ro" style="zoom:50%;" />
 
 现在我们重点来看这个 $R_m$ 矩阵，这就是RoPE论文里的公式（15）：
 
