@@ -43,7 +43,7 @@ $$
 
 我们用`d`来表示词嵌入维度，用`n`来表示输入序列长度，用`t`来表示输入的索引（编号），下面这幅图展示了两种视角下，矩阵`K`在形状上的差异。本文后面的图基本都是列向量视角。
 
-<img src="../images/notes//ds2/mla-k.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla-k.png" alt="mla" style="zoom:50%;" />
 
 
 
@@ -85,7 +85,7 @@ $$
 
 如前所述，本文假设读者对于标准注意力机制已经非常熟悉了，所以这里不会展开介绍上面这些公式。唯一要注意的地方，就是上面这些公式里，所有向量都是列向量。这一点在前面也解释过了。我们把公式（1）到（8）都画在一起，如下图所示：
 
-<img src="../images/notes//ds2/mla01.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla01.png" alt="mla" style="zoom:50%;" />
 
 注意，在上图里，我们把K和V画成了灰色，表示它们需要被放进KVCache里。如果词嵌入维度很大，且输入序列也很长，那么KVCache就会成为瓶颈，这就是MLA要解决的问题。
 
@@ -107,7 +107,7 @@ $$
 
 公式（37）先给输入降维；然后公式（38）再升维、公式（39）应用RoPE编码；最后公式（40）按头进行拼接。我们把上面的计算，画成下面这个图：
 
-<img src="../images/notes//ds2/mla37.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla37.png" alt="mla" style="zoom:50%;" />
 
 再来看K的部分，对应论文里的公式（41）到（44）：
 
@@ -123,7 +123,7 @@ $$
 
 这个和Q的计算基本是一样的，只是 $k_t^R$ 的计算有所不同，且是多个头共用的。我们把这些计算，画成下面这个图：
 
-<img src="../images/notes//ds2/mla41.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla41.png" alt="mla" style="zoom:50%;" />
 
 注意，上图这两个灰色矩阵，就是最后要放进KVCache里的内容。论文里说， $d_c \ll d_h n_h$ ， $d^R_h$ 更小，于是就起到了压缩KVCache的效果。我们再来看V的计算，对应公式（45）：
 
@@ -136,7 +136,7 @@ $$
 
 看懂了Q和K的计算，V的计算就不是很难理解了。我们把这个计算，画成下面这个图：
 
-<img src="../images/notes//ds2/mla45.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla45.png" alt="mla" style="zoom:50%;" />
 
 最后是注意力计算，以及最后的投影，对应公式（46）和（47）：
 
@@ -150,7 +150,7 @@ $$
 
 这两个公式基本就是标准注意力机制，没啥可说的。我们把Q、K、V的计算，以及最后的注意力计算，全部画在一起，如下图所示：
 
-<img src="../images/notes//ds2/mla46.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla46.png" alt="mla" style="zoom:50%;" />
 
 如前所述，KVCache是大大缩小了，可是计算量仿佛大了不少。MLA的巧妙之处在于，在推理时，我们不需要真的把中间这些矩阵都算出来。利用矩阵乘法的性质，我们可以把 $W^{UK}$ 融合进 $W^Q$ ，把 $W^{UV}$ 融合进 $W^O$ ，这就大大简化了计算量。不过这一点论文里并没有详细介绍，我们在下一小节讨论一下。
 
@@ -223,7 +223,7 @@ $$
 
 可以看到，对每个头 $i$ ，矩阵 $[W^{UV}]_i$ 被融合进了对应的 $W^O_i$ 里，得到 $[W^{OV}]_i$ 。经过这两个矩阵融合，计算被大幅简化了。我们把这个简化后的计算过程画出来，如下图所示。其中融合后的矩阵，用蓝色表示。
 
-<img src="../images/notes//ds2/mla-absorb.png" alt="mla" style="zoom:50%;" />
+<img src="../images/notes/ds2/mla-absorb.png" alt="mla" style="zoom:50%;" />
 
 不难看出来，由于权重融合，我们大幅简化了标准注意力之前的计算。然而，我们也因此无法再套用标准的注意力计算公式了。一些优化措施，比如FlashAttention，也不能直接用了。
 

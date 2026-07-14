@@ -10,6 +10,6 @@
 * [图解DeepSeek-V2 MLA公式](notes/DSv2MLA.md)
 * [图解Flash Attention核心原理](notes/FA.md)
 * [图解位置编码](notes/PE.md)
-* [图解MSA（MiniMax Sparse Attention）](MiniMaxMSA.md)
-
+* [图解MSA（MiniMax Sparse Attention）](notes/MiniMaxMSA.md)
+* [图解DeepSeek训练过程](notes/DSTrain.md)
 
