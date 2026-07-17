@@ -12,7 +12,7 @@
 
 本文假设读者已经对标准的Transformer架构和注意力机制非常熟悉了，如果还不熟悉的话，可以先熟读2017年的那篇经典论文。这里我们先假设DeepSeek-V4用的就是标准的Transformer架构（Decoder-only），而且先省略大部分细节（后文会展开），它的推理过程看起来大概是这样：
 
-<img src="../images/notes/ds4/ds11.png" alt="ds" style="zoom:50%;" />
+<img src="./images/ds4/ds11.png" alt="ds" style="zoom:50%;" />
 
 上图中有几个重要的信息：
 
@@ -49,7 +49,7 @@ $$
 
 我们用圆形或椭圆来表示**计算**（如下图`softmax`），如果某个计算对应某论文中某公式，我们也会用黄色框框标识出来。为了简化示意图，我们经常会省略矩阵乘法，直接用权重矩阵本身来表示。基于这些约定，我们把上面公式（1）的计算过程大致画出来，重点展示Prefill阶段，如下图所示：
 
-<img src="../images/notes/ds4/attn01.png" alt="attn" style="zoom:50%;" />
+<img src="./images/ds4/attn01.png" alt="attn" style="zoom:50%;" />
 
 上图 $QK^T$ 矩阵中，有些元素是灰色的，表示加了因果掩码，这个细节这里就不展开解释了。不难看出，Q、K、V的计算、 $QK^T$ 的计算、注意力计算，以及最后输出的计算，大部分都是可以在GPU上大规模并行处理的矩阵乘法运算，所以Prefill阶段的确是**计算密集型**的，瓶颈是GPU算力。
 
@@ -59,7 +59,7 @@ $$
 
 我们再来看Decode阶段。假如输入“好好学习”预测出的下一个字是“天”，我们会把“好好学习天”当作输入，再次预测下一个字。问题是前面4个字的K和V，完全是可以复用的，如果输入序列很长，那么重新计算就很浪费。所以我们可以把前面算好的K和V都缓存起来，下次直接拿出来用，这个就是所谓的KVCache机制。在上面的图里，我们把K和V画成了深灰色，表示它们可以被缓存起来，重复利用。基于KVCache机制，我们把Decode阶段的注意力计算也画出来，如下图所示：
 
-<img src="../images/notes/ds4/attn02.png" alt="attn" style="zoom:50%;" />
+<img src="./images/ds4/attn02.png" alt="attn" style="zoom:50%;" />
 
 由于KVCache的使用，Decode阶段直接变成了**存储访问密集型**，稍后会详细说明。于是，Decode阶段瓶颈不再是GPU算力，而是GPU显存（HBM）。
 
@@ -83,7 +83,7 @@ $$
 
 我们把上面这个多头计算公式画成图，如下所示：
 
-<img src="../images/notes/ds4/attn03.png" alt="attn" style="zoom:50%;" />
+<img src="./images/ds4/attn03.png" alt="attn" style="zoom:50%;" />
 
 我们假设每个浮点数占用`f`个字节，Transformer架构一共有`l`个decoder层。那么根据上面这个图，我们可以粗略估计，KVCache占用的空间大约是：
 
@@ -137,7 +137,7 @@ $$
 
 现在我们切换到DeepSeek-V4视角，看看它的整体推理过程，如下图所示：
 
-<img src="../images/notes/ds4/ds12.png" alt="ds" style="zoom:50%;" />
+<img src="./images/ds4/ds12.png" alt="ds" style="zoom:50%;" />
 
 和最开始的Transformer视角相比，主要是两个细节发生了变化：
 
@@ -153,7 +153,7 @@ $$
 
 先来看CSA，下面是DeepSeek-V4论文中给出的架构图。这个架构图还是比较抽象的，所以我把它展开一步一步介绍。顺便说一下，CSA其实用了DeepSeek-V3.2提出的DSA（DeepSeek Sparse Attention）。不过，看懂了CSA就没必要再去专门看DSA了。
 
-<img src="../images/notes/ds4/v4f3.png" alt="01" style="zoom:50%;" />
+<img src="./images/ds4/v4f3.png" alt="01" style="zoom:50%;" />
 
 
 
@@ -171,7 +171,7 @@ $$
 
 这四个降维操作如下图所示。C、Z、W这些矩阵的形状，都可以从下图看到，后面也会以表格形式总结。
 
-<img src="../images/notes/ds4/csa09.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa09.png" alt="csa" style="zoom:50%;" />
 
 第二步，压缩。利用上面计算出的4个序列，计算出一个压缩序列，长度是原来的 $\frac{1}{m}$ 。其中`m`就是CSA的压缩率，论文中的取值是4。这一步对应论文中的公式（11）和（12）：
 
@@ -185,11 +185,11 @@ $$
 
 压缩是分组计算的，每一组m个。为了便于理解，我们只取其中的一组（m个），把这两个计算展开。哈达玛积（⊙）和累加画出来太繁琐了，所以我们就用“压缩”来表示。于是上面的两个公式就画成了下面这样：
 
-<img src="../images/notes/ds4/csa11.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa11.png" alt="csa" style="zoom:50%;" />
 
 最终的效果，就是输入被降维和压缩了。维度从7168降到了512，只有原来的1/14。序列长度每4个一组压缩，只有原来的1/4。后面马上要介绍的“闪电索引”，也用了同样的套路，只是维度降的更低，降到了128，只有输入的1/56。这两个过程可以用下图表示：
 
-<img src="../images/notes/ds4/csa12.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa12.png" alt="csa" style="zoom:50%;" />
 
 
 
@@ -207,7 +207,7 @@ $$
 
 这个公式是针对某一个输入（ $h_t$ ）来计算的，具体过程如下图蓝框所示。公式中出现的权重矩阵、输入输出和中间结果的形状，都画在图里了。（公式18可以暂时忽略，等会再回来看）
 
-<img src="../images/notes/ds4/csa13.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa13.png" alt="csa" style="zoom:50%;" />
 
 和注意力机制类似，闪电索引也是多头的，一共有 $n^I_h$ 个头（论文里这个值是64）。某个输入经过上面这套公式计算之后，就给每个闪电索引头算出来一个 $q^I$ 向量，维度是 $c^I$ 。再来看论文中的公式（15）和（16）：
 
@@ -221,11 +221,11 @@ $$
 
 其中公式（15）也是针对某个输入来计算的，结果是 $n^I_h$ 个权重值，如下图所示：
 
-<img src="../images/notes/ds4/csa15.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa15.png" alt="csa" style="zoom:50%;" />
 
 公式（16）也是针对某个输入计算的，索引也用`t`表示。对于某个输入，需要一个 $q_t$ 向量，这个是公式（13）和（14）算出来的。另外，还需要一个 $K^{IComp}$ 矩阵，索引用`s`表示。这个矩阵的计算过程和前一小节压缩KV的计算基本是一样的，可以去看上一小节的最后一幅图。于是，公式（16）的整体计算细节如下图所示：
 
-<img src="../images/notes/ds4/csa16.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa16.png" alt="csa" style="zoom:50%;" />
 
 公式（16）看着特别复杂，但如果你忽略各种细节，其实就是针对每一个输入 $h_t$ ，算出一个打分向量 $I_t$ ，维度是n/m。有了打分之后，就可以用TopK算法去筛选稀疏KV了，也就是论文公式（17）：
 
@@ -238,7 +238,7 @@ $$
 
 最后的效果就是，输入（形状是[n × d]）经过降维和压缩，得到了 $C^{Comp}$ ，形状是[n/m × c]。对于第`t`个输入，有一个打分向量 $I_t$ ，用它进行TopK筛选，得到了 $C_t^{SprsComp}$ ，形状是[K × c]。整个过程如下图所示：
 
-<img src="../images/notes/ds4/csa17.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa17.png" alt="csa" style="zoom:50%;" />
 
 在DeepSeek-V4论文里，d=7168，c=512，m=4，K=1024。于是，不管输入序列有多长，对于某个输入，这么一大套算下来，最后得到的就是一个[1024 × 512]的矩阵。而 $C^{Comp}$ 矩阵，就是要放在KVCache里的数据。
 
@@ -257,7 +257,7 @@ $$
 
 这个 $q$ 向量，和公式（14）的 $q^I$ 向量，在计算过程上基本是一样的，所以我把它们画在了一起。这里重新贴一下这个图：
 
-<img src="../images/notes/ds4/csa13.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa13.png" alt="csa" style="zoom:50%;" />
 
 现在，所有东西都准备好了，利用这些数据进行标准注意力计算就可以了。这个对应论文公式（19）：
 
@@ -270,7 +270,7 @@ $$
 
 上面公式里的`t`是输入的索引，`i`是注意力头的索引。由于使用的是MQA注意力机制，所以只有Q带着`i`下标。总之，最重要的是，不管输入序列多长，对于某个输入来说，最后进入注意力计算的，就是这个经过降维&压缩&筛选后的稀疏KV，长度固定为K=1024。到目前为止的整个过程如下图所示：
 
-<img src="../images/notes/ds4/csa18.png" alt="csa" style="zoom:50%;" />
+<img src="./images/ds4/csa18.png" alt="csa" style="zoom:50%;" />
 
 
 
@@ -278,13 +278,13 @@ $$
 
 上面这个图显示的是某个注意力头的计算，对于多个头（一共 $n_h=128$ 个），我们需要把这些 $o_{t, i}$ 都拼接起来，然后做一次线性变换，得到最终输出，如下图所示：
 
-<img src="../images/notes/ds4/csa-gop1.png" alt="gop" style="zoom:50%;" />
+<img src="./images/ds4/csa-gop1.png" alt="gop" style="zoom:50%;" />
 
 在DeepSeek-V4论文里，c=512， $n_h$ = 128，所以拼接起来的 $o_t$ 向量，维度是512×128=64K。这个计算量太大了，所以DeepSeek采取了一个“分组两级计算”的优化。
 
 首先，把 $n_h$ 个向量分成g组（论文里取值16）。也就是说，分成16组，每组8个。然后把每个组，投影成一个向量，维度是 $d_g$ （论文里取值1024）。最后把这些中间的向量拼起来，再做一次变换，得到最终需要的输出。这个计算过程如下图所示：
 
-<img src="../images/notes/ds4/csa-gop2.png" alt="gop" style="zoom:50%;" />
+<img src="./images/ds4/csa-gop2.png" alt="gop" style="zoom:50%;" />
 
 这里做一个简单的比较。我们知道：若矩阵A的形状是[a,b]，矩阵B的形状是[b,c]，那么矩阵乘 AB 计算量大约为 a⋅b⋅c。于是，优化前的计算量是：
 
@@ -355,7 +355,7 @@ $$
 
 现在来看HCA，下面是论文里给出的架构图。这个图同样也是比较抽象，所以我们还是需要展开来细看。相比CSA，HCA要简单一些（没有筛选逻辑）。如果你已经理解了CSA，那么HCA就比较好懂了，所以这一小节可能写的没那么详细。
 
-<img src="../images/notes/ds4/v4f4.png" alt="01" style="zoom:50%;" />
+<img src="./images/ds4/v4f4.png" alt="01" style="zoom:50%;" />
 
 
 
@@ -373,7 +373,7 @@ $$
 
 这两个公式的计算如下图所示。其中两个W，以及C和Z的形状，都画在了图里。
 
-<img src="../images/notes/ds4/hca20.png" alt="hca" style="zoom:50%;" />
+<img src="./images/ds4/hca20.png" alt="hca" style="zoom:50%;" />
 
 降维之后是压缩。我们展开来看一下上图中的“压缩”操作，它对应论文中的公式（22）和（23）：
 
@@ -387,7 +387,7 @@ $$
 
 这两个公式都是针对一组输入来计算的，每一组有m'（论文取值128）个向量。首先，一组Z和偏置B，算出一组S（公式22）。然后，一组S和一组C，算出一个 $C^{Comp}$ 向量（公式23）。这两个计算过程如下图所示：
 
-<img src="../images/notes/ds4/hca22.png" alt="hca" style="zoom:50%;" />
+<img src="./images/ds4/hca22.png" alt="hca" style="zoom:50%;" />
 
 总之，输入序列的形状是[n × d]，其中d=7168。计算出的 $C^{Comp}$ 的形状是[n/m' × c]，其中m'=128，c=512。可以看到，长度缩小为原来的1/128，降维缩小为原来的1/14，效果还是挺明显的。
 
@@ -407,7 +407,7 @@ $$
 
 这个计算我们也很熟悉了，如下图所示。两个W矩阵的形状，中间状态的形状等，也是直接画在图里了。
 
-<img src="../images/notes/ds4/hca24.png" alt="hca" style="zoom:50%;" />
+<img src="./images/ds4/hca24.png" alt="hca" style="zoom:50%;" />
 
 现在Q、K、V都准备好了，可以带入标准注意力公式进行计算了。这一步对应论文里的公式（26）：
 
@@ -420,7 +420,7 @@ $$
 
 上面公式里的`t`是输入的索引，`i`是注意力头的索引。总之，对于某个输入来说，最后进入注意力计算的，就是这个经过降维&压缩后的KV，长度只是原来的1/128。现在我们把前面这些步骤都画在一起，如下图所示：
 
-<img src="../images/notes/ds4/hca26.png" alt="hca" style="zoom:50%;" />
+<img src="./images/ds4/hca26.png" alt="hca" style="zoom:50%;" />
 
 
 
@@ -460,7 +460,7 @@ $$
 
 DeepSeek-V4沿用了DeepSeek-V3的MoE架构，而V3的MoE也只是在原来DeepSeekMoE基础上进行了一些微调。这个DeepSeekMoE，其实早在V2、V1里也已经在用了。这一小节，我们使用DeepSeek-V3里的公式，来讲解DeepSeekMoE。下面是DeepSeek-V3论文里的MoE架构图，比CSA和HCA好理解：
 
-<img src="../images/notes/ds4/moe-f2.png" alt="moe" style="zoom:50%;" />
+<img src="./images/ds4/moe-f2.png" alt="moe" style="zoom:50%;" />
 
 
 
@@ -483,7 +483,7 @@ $$
 
 顺便说一下，在DeepSeek-V3里，前3层是没有使用MoE的，就是普通（Dense）FFN。但是在V4里，前三层用的也是MoE，只是用了特殊的Hash路由，这个原论文里并没有展开说，这里也不详细介绍了。上面的公式可以画成下图这样：
 
-<img src="../images/notes/ds4/moe12.png" alt="moe" style="zoom:50%;" />
+<img src="./images/ds4/moe12.png" alt="moe" style="zoom:50%;" />
 
 现在我们来看 $g_{i,t}$ 是怎么算出来的，稍微有点复杂，对应论文中的公式（13）、（14）和（15）：
 
@@ -508,7 +508,7 @@ $$
 
 这三个公式可以画在一起，如下图所示：
 
-<img src="../images/notes/ds4/moe13.png" alt="moe" style="zoom:50%;" />
+<img src="./images/ds4/moe13.png" alt="moe" style="zoom:50%;" />
 
 
 
@@ -516,7 +516,7 @@ $$
 
 前面的介绍，是站在MoE公式的角度来画图的。如果我们使用CSA和HCA那种角度，使用矩阵乘法理解MoE，也是可以的。一个MoE，其实就是一个降维再升维的两层FFN，中间的隐藏维度是3072。我们用U和V来表示这两个矩阵，于是，
 
-<img src="../images/notes/ds4/moe-mm.png" alt="moe" style="zoom:50%;" />
+<img src="./images/ds4/moe-mm.png" alt="moe" style="zoom:50%;" />
 
 在DeepSeek-V4里，每层有1个共享专家，384个路由专家，共385个专家。每个token每次只激活其中的6个路由专家，加上共享专家，一共激活7个专家。所以，就MoE而言，每次激活的专家就只有1/55。我们估计一下参数量：
 
@@ -531,7 +531,7 @@ $$
 
 这一节介绍一下mHC，这个对应DeepSeek-V4架构图里的“Residual Mixing”，如下图所示：
 
-<img src="../images/notes/ds4/v4f2.png" alt="moe" style="zoom:50%;" />
+<img src="./images/ds4/v4f2.png" alt="moe" style="zoom:50%;" />
 
 为了便于理解，我们先从没有残差连接的版本开始说起，然后介绍残差连接，然后再介绍标准的超连接（HC），最后介绍mHC。
 
@@ -550,7 +550,7 @@ $$
 
 这里，我们使用DeepSeek-V4论文里的写法。其中 $X$ 表示输入输出， $l$ 表示层数， $\mathcal{F}_l$ 表示某一层的函数。这个公式是相当简单的，假如神经网络有3层，公式展开以后，画出来是下面这样：
 
-<img src="../images/notes/ds4/mhc1.png" alt="mhc" style="zoom:50%;" />
+<img src="./images/ds4/mhc1.png" alt="mhc" style="zoom:50%;" />
 
 
 
@@ -567,7 +567,7 @@ $$
 
 还是以3层网络为例，上面的公式展开后，画出来是下面这样：
 
-<img src="../images/notes/ds4/mhc2.png" alt="mhc" style="zoom:50%;" />
+<img src="./images/ds4/mhc2.png" alt="mhc" style="zoom:50%;" />
 
 
 
@@ -592,7 +592,7 @@ $$
 
 这个公式完整的计算细节，见下图（图里 $n_{hc}$ 取值3）。这里提到所有矩阵的形状，都画在图里了。
 
-<img src="../images/notes/ds4/mhc3.png" alt="mhc" style="zoom:50%;" />
+<img src="./images/ds4/mhc3.png" alt="mhc" style="zoom:50%;" />
 
 
 

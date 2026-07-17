@@ -179,12 +179,14 @@
   - 第七章：长短期记忆网络。介绍 LSTM 及其简化版本 GRU，解决长序列依赖问题的思路。
   - 第八章：编解码模型。介绍序列到序列问题，以及编码器-解码器结构的基本框架。
   - 第九章：注意力机制。介绍注意力机制如何动态关注关键信息，提高模型表现。
-  - 第十章：Transformer 架构。介绍基于注意力机制的 Transformer 结构及其核心设计。
 - 第三部分
+  - 第十章：Transformer 架构。介绍基于注意力机制的 Transformer 结构及其核心设计。
   - 第十一章：GPT 和 BERT。介绍两类典型大语言模型的结构特点及其差异。
-  - 第十二章：扩散模型。介绍扩散模型的基本原理及其在生成任务中的应用。
-  - 第十三章：反向传播。介绍神经网络的训练方法以及反向传播的核心思想。
-  - 第十四章：应用。介绍一些大模型相关的应用技术，如 RAG、Agent、Skills 等。
+  - 第十二章：DeepSeek。介绍DeepSeek-V4架构及其创新。
+  - 第十三章：扩散模型。介绍扩散模型的基本原理及其在生成任务中的应用。
+- 第四部分
+  - 第十四章：反向传播。介绍神经网络的训练方法以及反向传播的核心思想。
+  - 第十五章：应用。介绍一些大模型相关的应用技术，如 RAG、Agent、Skills 等。
 
 
 
@@ -3116,7 +3118,7 @@ TODO
 | Frank Rosenblatt    | 弗兰克・罗森布拉特 | 1928～1971 |      |
 | Seymour Papert      | 西摩・派珀特       | 1928～2016 |      |
 | David Rumelhart     | 大卫・鲁梅尔哈特   | 1942～2011 |      |
-| Geoffrey Hinton     | 杰弗里・辛顿       | 1947～     |      |
+| Geoffrey E. Hinton  | 杰弗里・辛顿       | 1947～     |      |
 | Ronald J. Williams  | 罗纳德・威廉姆斯   | 1945～2024 |      |
 | Yann LeCun          | 杨立昆             | 1960～     |      |
 |                     |                    |            |      |
@@ -3131,43 +3133,59 @@ TODO
 
 ## 附录B：论文列表
 
-| 年份 | 论文                                                         | 作者     |             |
-| ---- | ------------------------------------------------------------ | -------- | ----------- |
-| 1943 | A Logical Calculus of the Ideas Immanent in Nervous Activity |          | McP神经元   |
-| 1958 | The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain |          | 感知机      |
-| 1969 | Perceptrons: An Introduction to Computational Geometry       |          |             |
-| 1986 | [Learning representations by back-propagating errors](https://www.nature.com/articles/323533a0) |          | 反向传播    |
-| 1989 | [Backpropagation Applied to Handwritten Zip Code Recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-89e.pdf) | 杨立昆等 | CNN         |
-| 1997 | Long Short-Term Memory                                       |          | LSTM        |
-| 1998 | [GradientBased Learning Applied to Document Recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf) | 杨立昆等 | LeNet-5     |
-| 2012 | ImageNet Classification with Deep Convolutional Neural Networks |          | ImageNet    |
-| 2013 | [Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/abs/1301.3781) | Google   | Word2Vec    |
-| 2013 | [Distributed Representations of Words and Phrases and their Compositionality](https://arxiv.org/abs/1310.4546) | Google   | Word2Vec    |
-| 2014 | [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078) |          | GRU         |
-| 2014 | [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215) | Google   | Seq2Seq     |
-| 2014 | [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) |          | Attention   |
-| 2015 | [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025) |          | Attention   |
-| 2017 | [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | Google   | Transformer |
-| 2018 | [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf) | OpenAI   | GPT-1       |
-| 2018 | [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) | Google   | BERT        |
-|      |                                                              |          |             |
-|      |                                                              |          |             |
+| 年份 | 论文                                                         | 作者      |              |
+| ---- | ------------------------------------------------------------ | --------- | ------------ |
+| 1943 | A Logical Calculus of the Ideas Immanent in Nervous Activity |           | McP神经元    |
+| 1958 | The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain |           | 感知机       |
+| 1969 | Perceptrons: An Introduction to Computational Geometry       |           |              |
+| 1986 | [Learning representations by back-propagating errors](https://www.nature.com/articles/323533a0) | Hinton+   | 反向传播     |
+| 1989 | [Backpropagation Applied to Handwritten Zip Code Recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-89e.pdf) | 杨立昆等  | CNN          |
+| 1991 | Adaptive Mixtures of Local Experts                           | Hinton+   | MoE          |
+| 1997 | Long Short-Term Memory                                       |           | LSTM         |
+| 1998 | [GradientBased Learning Applied to Document Recognition](http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf) | 杨立昆等  | LeNet-5      |
+| 2012 | ImageNet Classification with Deep Convolutional Neural Networks |           | AlexNet      |
+| 2013 | [Efficient Estimation of Word Representations in Vector Space](https://arxiv.org/abs/1301.3781) | Google    | Word2Vec     |
+| 2013 | [Distributed Representations of Words and Phrases and their Compositionality](https://arxiv.org/abs/1310.4546) | Google    | Word2Vec     |
+| 2014 | [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078) |           | GRU          |
+| 2014 | [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215) | Google    | Seq2Seq      |
+| 2014 | [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473) |           | Attention    |
+| 2015 | [Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift](https://arxiv.org/abs/1502.03167) | Google    | Batch Norm   |
+| 2015 | [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025) |           | Attention    |
+| 2015 | [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909) |           | BEP          |
+| 2015 | [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) | Microsoft | ResNet       |
+| 2016 | [Layer Normalization](https://arxiv.org/abs/1607.06450)      | Hinton+   | Layer Norm   |
+| 2017 | [Attention Is All You Need](https://arxiv.org/abs/1706.03762) | Google    | Transformer  |
+| 2018 | [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf) | OpenAI    | GPT-1        |
+| 2018 | [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) | Google    | BERT         |
+| 2020 | [Scaling Laws for Neural Language Models](https://arxiv.org/pdf/2001.08361) | OpenAI    | Scaling Laws |
+|      |                                                              |           |              |
+|      |                                                              |           |              |
+|      |                                                              |           |              |
+|      |                                                              |           |              |
+|      |                                                              |           |              |
+|      |                                                              |           |              |
 
 <div style="page-break-after: always;"></div>
 
 ## 附录C：可视化工具列表
 
-| 网址                                      | 简述                     | 章节 |
-| ----------------------------------------- | ------------------------ | ---- |
-| https://perceptrondemo.com/               | 可视化感知机介绍         |      |
-| https://alexlenail.me/NN-SVG/index.html   | 自动生成神经网络结构图   |      |
-| https://adamharley.com/nn_vis/mlp/2d.html | 可视化多层感知机2D版本   |      |
-| https://adamharley.com/nn_vis/mlp/3d.html | 可视化多层感知机3D版本   |      |
-| https://setosa.io/ev/image-kernels/       | 可视化卷积核介绍         |      |
-| https://poloclub.github.io/cnn-explainer/ | 可视化卷积神经网络介绍   |      |
-| https://adamharley.com/nn_vis/cnn/2d.html | 可视化卷积神经网络2D版本 |      |
-| https://adamharley.com/nn_vis/cnn/3d.html | 可视化卷积神经网络3D版本 |      |
-|                                           |                          |      |
+| 网址                                                         | 简述                     | 章节 |
+| ------------------------------------------------------------ | ------------------------ | ---- |
+| https://perceptrondemo.com/                                  | 可视化感知机介绍         |      |
+| https://alexlenail.me/NN-SVG/index.html                      | 自动生成神经网络结构图   |      |
+| https://adamharley.com/nn_vis/mlp/2d.html                    | 可视化多层感知机2D版本   |      |
+| https://adamharley.com/nn_vis/mlp/3d.html                    | 可视化多层感知机3D版本   |      |
+| https://setosa.io/ev/image-kernels/                          | 可视化卷积核介绍         |      |
+| https://poloclub.github.io/cnn-explainer/                    | 可视化卷积神经网络介绍   |      |
+| https://adamharley.com/nn_vis/cnn/2d.html                    | 可视化卷积神经网络2D版本 |      |
+| https://adamharley.com/nn_vis/cnn/3d.html                    | 可视化卷积神经网络3D版本 |      |
+| https://poloclub.github.io/transformer-explainer/            | Transformer架构可视化    |      |
+| https://tiktokenizer.vercel.app/                             |                          |      |
+| https://erdem.pl/2021/05/understanding-positional-encoding-in-transformers | 位置编码                 |      |
+|                                                              |                          |      |
+|                                                              |                          |      |
+|                                                              |                          |      |
+|                                                              |                          |      |
 
 <div style="page-break-after: always;"></div>
 

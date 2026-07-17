@@ -25,7 +25,7 @@ $$
 
 本文假设读者已经对标准的Transformer架构和注意力机制非常熟悉了，如果还不熟悉的话，一定要先熟读2017年的那篇经典论文。为了简化讨论，我们用`d`来表示Q、K、V维度，用`n`来表示序列长度。取`d=3`，`n=8`，我们可以把上面这个公式画成下面这样（本文暂不考虑因果掩码）：
 
-<img src="../images/notes/msa/attn.png" alt="attn" style="zoom:50%;" />
+<img src="./images/msa/attn.png" alt="attn" style="zoom:50%;" />
 
 这个公式，以及上图，这里就不展开介绍了。需要提一下的是，公式中，Q、K、V都是由输入矩阵线性变换来的。在推理阶段，K和V是需要缓存起来的，这就是所谓的KV Cache，图中画成了绿色。不难看出，KV Cache需要的存储量和输入序列的长度是成正比的。当输入序列特别长的时候，KV Cache就成了瓶颈。后面要介绍的MQA、GQA等优化，都是在试图减少KV Cache的存储量。
 
@@ -45,7 +45,7 @@ $$
 
 我们用`h`来表示注意力头数。取`h=3`，上面的公式可以画成下面这样：
 
-<img src="../images/notes/msa/mha.png" alt="mha" style="zoom:50%;" />
+<img src="./images/msa/mha.png" alt="mha" style="zoom:50%;" />
 
 在MSA论文2.1小节里，以另一种形式描述了标准注意力机制，也就是论文公式（1）：
 
@@ -65,7 +65,7 @@ $$
 
 既然KV Cache是瓶颈，那么就想办法减少需要缓存的KV就行了。最简单的办法就是`h`个Q共用一组KV，这就是**多查询注意力**（Multi-Query Attention，简称**MQA**）提出的优化机制。MQA的基本架构如下图所示：
 
-<img src="../images/notes/msa/mqa.png" alt="mqa" style="zoom:50%;" />
+<img src="./images/msa/mqa.png" alt="mqa" style="zoom:50%;" />
 
 这个优化肯定是很有效的，比如说注意力头数`h=64`，由于所有的Q共用一组KV，MQA一下子就让KV Cache的用量变成了标准MHA的1/64。但是压缩得这么狠，想想肯定也是要付出代价的：
 
@@ -79,7 +79,7 @@ $$
 
 MQA的问题是压缩得太狠了：不管注意力头数`h`是多少，就共用一组KV。那么一个折中的办法就是：把Q分组，每一组Q共用KV。这就是**分组查询注意力**（Grouped-Query Attention，简称**GQA**）提出的优化机制，如下图所示（两个Q一组）：
 
-<img src="../images/notes/msa/gqa.png" alt="gqa" style="zoom:50%;" />
+<img src="./images/msa/gqa.png" alt="gqa" style="zoom:50%;" />
 
 我们假设把每`g`个Q分为一组，那么需要的KV数量就是 $h_{kv}=h/g$ 。不难看出，GQA对于KV Cache的压缩率就是`1/g`。当`g=1`时，就是标准MHA；当`g=h`时，就是MQA。
 
@@ -101,7 +101,7 @@ $$
 
 我们暂时先关注单个注意力头，并且聚焦在最后一个**q**的上面，稀疏注意力机制大致可以画成下面这样。其中深灰色表示我们暂时不关心的计算、浅灰色表示不在索引表内的**kv**、绿色表示在索引表内的**kv**、棕色表示计算出的注意力分数。
 
-<img src="../images/notes/msa/sa.png" alt="sa" style="zoom:50%;" />
+<img src="./images/msa/sa.png" alt="sa" style="zoom:50%;" />
 
 
 
@@ -111,7 +111,7 @@ $$
 
 BSA和SA基本原理是差不多的，只是我们要把Q和K分块。然后第一阶段算索引的时候，并不是像SA那样给每个**kv**分别算，而是按块来算。然后第二阶段也是按块选出**kv**，然后计算注意力。我们假设每个块里有2个**k**或者**v**，BSA机制可以画成下图这样：
 
-<img src="../images/notes/msa/bsa.png" alt="bsa" style="zoom:50%;" />
+<img src="./images/msa/bsa.png" alt="bsa" style="zoom:50%;" />
 
 
 
@@ -154,7 +154,7 @@ $$
 
 如果前面介绍的一大堆内容你都理解了，那么MiniMax稀疏注意力机制（MiniMax Sparse Attention，简称MSA）就好懂了，因为它本质上就是前面说的GQA+BSA。下面是MSA论文图1，介绍了MSA的整体结构，贴在这里供大家参考：
 
-<img src="../images/notes/msa/f1.png" alt="msa" style="zoom:50%;" />
+<img src="./images/msa/f1.png" alt="msa" style="zoom:50%;" />
 
 前面介绍的两阶段SA并没有说怎么得到索引表，MSA论文的3.1小节主要就是介绍这个细节。现在我们就来讨论MSA论文3.1小节里的数学公式。
 
@@ -174,7 +174,7 @@ $$
 
 如果你熟悉标准注意力机制，一眼就能看出来，上面的公式非常眼熟。没错，和标准注意力机制一样，这里Q和K也是输入通过线性变换得来的，公式里的上标`idx`表示这个是索引表计算。由于MSA基于GQA，所以我们会得到 $h_{kv}$ 个 $Q^{idx}$ 矩阵，它们共享一个 $K^{idx}$ 矩阵。公式（5）的计算过程如下图所示：
 
-<img src="../images/notes/msa/msa5.png" alt="msa" style="zoom:50%;" />
+<img src="./images/msa/msa5.png" alt="msa" style="zoom:50%;" />
 
 接下来是计算索引表分数，也就是MSA论文里的公式（6）。在这个公式里，下标`i`表示**q**的索引、下标`j`表示**kv**的索引、下标`b`表示BSA分块索引、上标`(r)`表示GQA分组索引。
 
@@ -188,7 +188,7 @@ $$
 
 上面公式（6）的S部分，是不是和注意力机制也很像？只是没有Softmax而已。而M部分，就是按BSA的思想，每个块取一个最大值。看起来，这就是一个简化版注意力机制。为了保持画图风格统一，我们临时用小写字母`b`来表示分块的数量，于是上面的公式可以画成下面这样：
 
-<img src="../images/notes/msa/msa6.png" alt="msa" style="zoom:50%;" />
+<img src="./images/msa/msa6.png" alt="msa" style="zoom:50%;" />
 
 上面的公式（6）算出了索引表的分数，我们还需要一个TopK机制，对分数表进行筛选，只保留一小部分分数，其余全部筛除掉（设置成 $-\infty$ ）。这就是MSA论文里公式（7）描述的计算：
 
@@ -201,7 +201,7 @@ $$
 
 现在我们把完整的索引表计算过程画出来，如下图所示：
 
-<img src="../images/notes/msa/msa7.png" alt="msa" style="zoom:50%;" />
+<img src="./images/msa/msa7.png" alt="msa" style="zoom:50%;" />
 
 
 
