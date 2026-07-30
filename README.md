@@ -12,4 +12,5 @@
 * [图解位置编码](notes/PE.md)
 * [图解MSA（MiniMax Sparse Attention）](notes/MiniMaxMSA.md)
 * [图解DeepSeek训练过程](notes/DSTrain.md)
+* [图解Kimi K3 Stable LatentMoE](notes/LatentMoE.md)
 
