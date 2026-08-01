@@ -233,13 +233,7 @@ $$
 
 ## 主要参考资料
 
-论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
-
-论文：[Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150)
-
-论文：[GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245)
-
-论文：[MiniMax Sparse Attention](https://arxiv.org/abs/2606.13392)
-
-
-
+* 论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+* 论文：[Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150)
+* 论文：[GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245)
+* 论文：[MiniMax Sparse Attention](https://arxiv.org/abs/2606.13392)
