@@ -6,11 +6,12 @@
 
 笔记：
 
-* [图解DeepSeek-V4(Pro)核心公式](notes/DSv4.md)
-* [图解DeepSeek-V2 MLA公式](notes/DSv2MLA.md)
-* [图解Flash Attention核心原理](notes/FA.md)
-* [图解位置编码](notes/PE.md)
-* [图解MSA（MiniMax Sparse Attention）](notes/MiniMaxMSA.md)
-* [图解DeepSeek训练过程](notes/DSTrain.md)
-* [图解Kimi K3 Stable LatentMoE](notes/LatentMoE.md)
+* [图解DeepSeek-V4(Pro)核心公式](notes/2026-06-25-DSv4.md)
+* [图解DeepSeek-V2 MLA公式](notes/2026-06-27-DSv2MLA.md)
+* [图解Flash Attention核心原理](notes/2026-07-02-FA.md)
+* [图解位置编码](notes/2026-07-05-PE.md)
+* [图解MSA（MiniMax Sparse Attention）](notes/2026-07-11-MiniMaxMSA.md)
+* [图解DeepSeek训练过程](notes/2026-07-14-DSTrain.md)
+* [图解Kimi K3 Stable LatentMoE](notes/2026-07-30-LatentMoE.md)
+* [图解Kimi Attention Residuals](notes/2026-08-01-AttnRes.md)
 

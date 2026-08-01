@@ -137,7 +137,7 @@ $$
 
 > Q：用简短易懂的语言总结一下 DeepSeekMoE 论文里 e 向量的使用，对比传统 MoE 门控 W 矩阵，有何优势。
 >
-> AI：虽然质心向量路由与传统矩阵门控数学等价，但独立的专家质心\(\boldsymbol{e}_i^l\)提供清晰几何解释，便于引入正则促进专家特化，并且天然适配共享专家与细粒度动态专家混合的 MoE 架构。
+> AI：虽然质心向量路由与传统矩阵门控数学等价，但独立的专家质心 $\boldsymbol{e}_i^l$ 提供清晰几何解释，便于引入正则促进专家特化，并且天然适配共享专家与细粒度动态专家混合的 MoE 架构。
 
 第三个改进：负载均衡。虽然专家多了，但是如果训练时只有少数专家得到了学习机会，导致推理时只有这些专家有机会激活，那也不行。于是DeepSeekMoE考虑了专家之间的负载均衡，让每个token激活的专家尽可能分散。这个改进主要是训练阶段的，本文就不展开讨论了，读者可以通过论文了解更多细节。
 
@@ -257,20 +257,12 @@ $$
 
 ## 主要参考资料
 
-论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
-
-论文：[The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783)
-
-论文：[GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)
-
-论文：[Mixtral of Experts](https://arxiv.org/abs/2401.04088)
-
-论文：[DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models](https://arxiv.org/abs/2401.06066)
-
-论文：[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)
-
-论文：[LatentMoE: Toward Optimal Accuracy per FLOP and Parameter in Mixture of Experts](https://arxiv.org/abs/2601.18089)
-
-论文：[Nemotron 3 Super: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning](https://arxiv.org/pdf/2604.12374)
-
-论文：[Kimi K3: Open Frontier Intelligence](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf)
+* 论文：[Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+* 论文：[The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783)
+* 论文：[GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)
+* 论文：[Mixtral of Experts](https://arxiv.org/abs/2401.04088)
+* 论文：[DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models](https://arxiv.org/abs/2401.06066)
+* 论文：[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)
+* 论文：[LatentMoE: Toward Optimal Accuracy per FLOP and Parameter in Mixture of Experts](https://arxiv.org/abs/2601.18089)
+* 论文：[Nemotron 3 Super: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning](https://arxiv.org/pdf/2604.12374)
+* 论文：[Kimi K3: Open Frontier Intelligence](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf)
