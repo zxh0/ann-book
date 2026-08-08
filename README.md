@@ -14,4 +14,5 @@
 * [图解DeepSeek训练过程](notes/2026-07-14-DSTrain.md)
 * [图解Kimi K3 Stable LatentMoE](notes/2026-07-30-LatentMoE.md)
 * [图解Kimi Attention Residuals](notes/2026-08-01-AttnRes.md)
+* [图解Kimi Delta Attention](notes/2026-08-08-KDA.md)
 
