@@ -14,3 +14,5 @@ Notas:
 * [Diagrama del proceso de entrenamiento de DeepSeek](notes/2026-07-14-DSTrain.md)
 * [Diagrama de Kimi K3 Stable LatentMoE](notes/2026-07-30-LatentMoE.md)
 * [Diagrama de Residuals de Atención de Kimi](notes/2026-08-01-AttnRes.md)
+* [Diagrama de Kimi Delta Attention](notes/2026-08-08-KDA.md)
+* [Continuación de KDA (complementos de matemáticas)](notes/2026-08-12-LAMath.md)
