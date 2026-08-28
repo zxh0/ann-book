@@ -17,4 +17,5 @@
 * [图解Kimi Delta Attention](notes/2026-08-08-KDA.md)
 * [图解KDA续（数学知识补充）](notes/2026-08-12-LAMath.md)
 * [图解LongCat Sparse Attention](notes/2026-08-22-LSA.md)
+* [图解N-gram Embedding](notes/2026-08-28-NgE.md)
 
