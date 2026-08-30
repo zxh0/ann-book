@@ -18,4 +18,5 @@
 * [图解KDA续（数学知识补充）](notes/2026-08-12-LAMath.md)
 * [图解LongCat Sparse Attention](notes/2026-08-22-LSA.md)
 * [图解N-gram Embedding](notes/2026-08-28-NgE.md)
+* [图解LLM（大白话版）](notes/2026-08-30-LLM.md)
 
