@@ -18,3 +18,4 @@ Notas:
 * [Continuación de KDA (complementos de matemáticas)](notes/2026-08-12-LAMath.md)
 * [Diagrama de LongCat Sparse Attention](notes/2026-08-22-LSA.md)
 * [Diagrama de N-gram Embedding](notes/2026-08-28-NgE.md)
+* [Diagrama de LLM (versión en lenguaje sencillo)](notes/2026-08-30-LLM.md)
