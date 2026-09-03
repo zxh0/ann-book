@@ -1,16 +1,16 @@
 # 人人能懂的人工神经网络
 
+<!-- 自动生成，请不要编辑！ -->
+
 > ANN for the Rest of Us
 >
-> 版本：v2026.05.11
+> 版本：v2026.09.03
 
 免责申明：本书还在很早期的草稿阶段，以下内容可能有很多逻辑混乱、甚至胡言乱语的地方，我会慢慢改进！
 
 <img src="./images/ann.jpg" alt="ann" style="zoom:150%;"/>
 
 <div style="page-break-after: always;"></div>
-
-
 
 ## 前言
 
@@ -258,9 +258,6 @@ TODO：放上GitHub仓库链接？
 
 当然，这本书最终能够完整呈现在读者面前，也离不开帮助我审阅初稿的各位朋友。他们提出的宝贵意见与建议，让本书内容更加完整、表达更加清晰严谨。同时，我也要由衷感谢家人的支持与理解 —— 写作占用了大量本应陪伴他们的时间，没有他们的包容与鼓励，这本书很难顺利完成。
 
-
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第零章：基础知识
@@ -426,8 +423,8 @@ b_{21} & b_{22} \\
 b_{31} & b_{32}
 \end{bmatrix} =
 \begin{bmatrix}
-row(A, 1) \cdot col(B, 1) & row(A, 1) \cdot col(B, 2) \\
-row(A, 2) \cdot col(B, 1) & row(A, 2) \cdot col(B, 2) \\
+\mathrm{row}(A, 1) \cdot \mathrm{col}(B, 1) & \mathrm{row}(A, 1) \cdot \mathrm{col}(B, 2) \\
+\mathrm{row}(A, 2) \cdot \mathrm{col}(B, 1) & \mathrm{row}(A, 2) \cdot \mathrm{col}(B, 2) \\
 \end{bmatrix}
 $$
 
@@ -603,7 +600,7 @@ $$
 那么真正的问题来了：激活函数到底长啥样呢？答案是，激活函数有很多种。这里我们先介绍三个最经典、最常用的。第一个激活函数叫做**Sigmoid**（也叫S型函数）。如果把它画出来，形状就像字母S，因此得名。它会把任意数值压缩到0～1之间，经常用来输出概率。下面是Sigmoid激活函数的定义：
 
 $$
-Sigmoid(x) = \frac{1}{1+e^{-x}}
+\mathrm{Sigmoid}(x) = \frac{1}{1+e^{-x}}
 $$
 
 这里`e`表示自然常数，也叫欧拉数。如果用Python来实现Sigmoid函数，代码可能是下面这样：
@@ -618,7 +615,7 @@ def sigmoid(x: float) -> float:
 第二个是**双曲正切函数**（Hyperbolic Tangent，简称Tanh），它会把任意数值压缩到-1～1之间。听名字就很复杂，对吧？（好像是这样的）下面是Tanh激活函数的定义：
 
 $$
-Tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}
+\mathrm{Tanh}(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}
 $$
 
 如果用Python来实现Tanh函数，代码可能是下面这样：
@@ -632,7 +629,7 @@ def tanh(x: float) -> float:
 第三个是**修正线性单元**（Rectified Linear Unit，简称ReLU）。是不是名字听起来也很吓人？不过相比Sigmoid和Tanh，这个激活函数倒是特别简单：它会把小于0的数值都变成0，大于等于0的数值保持不变。下面是ReLU激活函数的定义：
 
 $$
-ReLU(x) = max(0, x)
+\mathrm{ReLU}(x) = \mathrm{max}(0, x)
 $$
 
 如果用Python来实现ReLU函数，代码可能是下面这样：
@@ -1223,7 +1220,7 @@ Test Accuracy: 91.48%
 还记得吗？我们的神经网络输出的是一组分数值（有正有负），分数越高，代表识别为对应数字的倾向越强烈。在深度学习中，输出层这种未经处理的原始数值，通常被称为Logits（原始得分）。接下来我们就来聊聊Softmax函数，它也被称作“概率归一化函数”，可以将这些原始分数转换为一组概率值，并且所有概率加起来正好等于1。我们先来看Softmax函数的定义：
 
 $$
-Softmax(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{n}e^{z_j}}
+\mathrm{Softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{n}e^{z_j}}
 $$
 
 这个公式本身并不难理解，如果你熟悉Python语言，仅需三行代码就能实现：
@@ -1637,7 +1634,7 @@ def new_conv_layer2(kernel_list, padding=0, stride=1):
 需要补充说明的是，若输入为多个通道，池化层会对每一张输入特征图依次进行独立处理，各通道的池化操作互不干扰、互不影响。对于任意一张输入特征图，我们仍假设其经过池化操作后的输出为矩阵 $Y$ ，其中 $y_{ij}$ 表示该矩阵中第i行、第j列的元素，矩阵 $P_{ij}$ 表示输入特征图上与该元素对应的局部区域（即池化窗口所覆盖的区域）。以最大池化为例，我们可通过以下公式，计算输出矩阵任意位置的元素值：
 
 $$
-y_{ij} = max(P_{ij})
+y_{ij} = \mathrm{max}(P_{ij})
 $$
 
 我们将上一节中的LeNet风格示例进行拓展，在两个卷积层之后分别增添一个池化层。具体设置为：池化窗口大小为2×2，移动步幅为2。通过这样的设置，可将输入特征图的尺寸缩小至原来的1/4。更新后的完整网络结构如下所示：
@@ -2375,8 +2372,6 @@ $$H' = σ(W_{xh}X + W_{hh}H + B_h)，\quad Y = σ(W_{hy}H' + B_y)$$
 
 <img src="./images/ch05/sum.png" alt="sum" style="zoom:50%;" />
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第六章：词元和词嵌入
@@ -2505,8 +2500,6 @@ TODO
 
 TODO
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第七章：长短期记忆网络
@@ -2586,9 +2579,9 @@ $$
 F &= σ(W_{fx}X + W_{fh}H + B_f) \\
 I &= σ(W_{ix}X + W_{ih}H + B_i) \\
 O &= σ(W_{ox}X + W_{oh}H + B_o) \\
-\hat{C} &= tanh(W_{cx}X + W_{ch}H + B_c) \\
+\hat{C} &= \mathrm{tanh}(W_{cx}X + W_{ch}H + B_c) \\
 C' &= F * C + I * \hat{C} \\
-H' &= O * tanh(C) \\
+H' &= O * \mathrm{tanh}(C) \\
 Y &= W_{hy}H' + B_y
 \end{aligned}
 $$
@@ -2624,7 +2617,7 @@ $$
 $$
 \begin{aligned}
 I &= σ(W_{ix}X + W_{ih}H + B_i) \\
-\hat{C} &= tanh(W_{cx}X + W_{ch}H + B_c) \\
+\hat{C} &= \mathrm{tanh}(W_{cx}X + W_{ch}H + B_c) \\
 C' &= ... + I * \hat{C} \\
 \end{aligned}
 $$
@@ -2646,7 +2639,7 @@ $$
 $$
 \begin{aligned}
 O &= σ(W_{ox}X + W_{oh}H + B_o) \\
-H' &= O * tanh(C) \\
+H' &= O * \mathrm{tanh}(C) \\
 Y &= W_{hy}H' + B_y
 \end{aligned}
 $$
@@ -2691,7 +2684,7 @@ $$
 \begin{aligned}
 Z &= σ(W_{zx}X + W_{zh}H + B_z) \\
 R I'm &= σ(W_{rx}X + W_{rh}H + B_r) \\
-\hat{H} &= tanh(W_{hx}X + W_{hh}(R * H) +B_t)) \\
+\hat{H} &= \mathrm{tanh}(W_{hx}X + W_{hh}(R * H) +B_t)) \\
 H' &= (1 - Z)*H + Z * \hat{H} \\
 Y &= W_{hy}H' + B_y
 \end{aligned}
@@ -2716,8 +2709,6 @@ def new_gru_layer(update_gate, reset_gate, tanh_gate):
 ### 本章小结
 
 TODO：
-
-
 
 <div style="page-break-after: always;"></div>
 
@@ -2805,8 +2796,6 @@ TODO
 
 TODO
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第九章：注意力机制
@@ -2849,8 +2838,6 @@ TODO
 
 TODO
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第十章：Transformer架构
@@ -2878,6 +2865,7 @@ TODO：
 <img src="./images/ch09/qkv.png" alt="qkv" style="zoom:50%;" />
 
 KQV计算：
+
 $$
 Q_1 = X_1 \times W_q \\
 K_1 = X_1 \times W_k \\
@@ -2889,6 +2877,7 @@ $$
 <img src="./images/ch09/qkv2.png" alt="qkv2" style="zoom:50%;" />
 
 用矩阵表示：
+
 $$
 Q = X \times W_q \\
 K = X \times W_k \\
@@ -2917,12 +2906,15 @@ def calc_qkv(w_q, w_k, w_v, x):
 
 
 分数：
+
 $$
-score_{ij} = softmax(\frac{Q_i \cdot K_j}{\sqrt{d_k}})
+score_{ij} = \mathrm{softmax}(\frac{Q_i \cdot K_j}{\sqrt{d_k}})
 $$
+
 用矩阵表示：
+
 $$
-Score = softmax(\frac{Q \times K^T}{\sqrt{d_k}})
+Score = \mathrm{softmax}(\frac{Q \times K^T}{\sqrt{d_k}})
 $$
 
 Python代码：
@@ -2940,13 +2932,15 @@ def calc_score(q, k, v, sqrt_d_k):
 <img src="./images/ch09/attention.png" alt="attention" style="zoom:50%;" />
 
 V加权求和：
+
 $$
 Z_i = \sum_{j=1}^{n}{score_{ij} \times V_j}
 $$
 
 用矩阵表示：
+
 $$
-Z = softmax(\frac{Q \times K^T}{\sqrt{d_k}}) \times V
+Z = \mathrm{softmax}(\frac{Q \times K^T}{\sqrt{d_k}}) \times V
 $$
 
 代码：
@@ -3009,8 +3003,6 @@ TODO
 
 TODO
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 第十一章：GPT和BERT
@@ -3038,8 +3030,6 @@ U-Net（主流）
 ### 本章小结
 
 TODO
-
-
 
 <div style="page-break-after: always;"></div>
 
@@ -3089,8 +3079,6 @@ Skills
 
 TODO
 
-
-
 <div style="page-break-after: always;"></div>
 
 ## 后记
@@ -3100,8 +3088,6 @@ TODO
 全连接层，和感知机，是一回事。
 
 前馈神经网络，和多层感知机，是一回事。
-
-
 
 <div style="page-break-after: always;"></div>
 
@@ -3242,4 +3228,3 @@ TODO
 |                              |               |              |      |
 |                              |               |              |      |
 |                              |               |              |      |
-
