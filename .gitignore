@@ -1,2 +1,10 @@
 .DS_Store
 .venv/
+
+# VitePress 站点：以下都是从 notes/ 和 book/ 生成的产物
+node_modules/
+docs/notes/
+docs/public/
+docs/.vitepress/sidebar.json
+docs/.vitepress/dist/
+docs/.vitepress/cache/
