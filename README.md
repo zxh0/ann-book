@@ -1,5 +1,7 @@
 # 人人能懂的人工神经网络
 
+在线阅读（支持全文搜索和公式渲染）：https://zxh0.github.io/ann-book/
+
 书：
 
 * [人人能懂的人工神经网络](book/Book.md)（WIP）

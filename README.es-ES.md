@@ -1,5 +1,7 @@
 # Redes Neuronales Artificiales que Todo el Mundo Puede Entender
 
+Lectura en línea (con búsqueda de texto completo y renderizado de fórmulas): https://zxh0.github.io/ann-book/
+
 Libro:
 
 * [Redes Neuronales Artificiales que Todo el Mundo Puede Entender](book/Book.md)（WIP）
@@ -19,3 +21,4 @@ Notas:
 * [Diagrama de LongCat Sparse Attention](notes/2026-08-22-LSA.md)
 * [Diagrama de N-gram Embedding](notes/2026-08-28-NgE.md)
 * [Diagrama de LLM (versión en lenguaje sencillo)](notes/2026-08-30-LLM.md)
+* [Diagrama de las estrategias de paralelismo de LLM (nivel básico)](notes/2026-09-06-Paral.md)
