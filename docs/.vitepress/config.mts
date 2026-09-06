@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress'
-import { sidebar, latest } from './sidebar.json'
+import { sidebar, latest, bookSidebar, bookRewrites } from './sidebar.json'
 
 // sidebar.json 由 scripts/build-site.mjs 从 notes/ 和 book/ 生成
 const newest = latest[0].link
@@ -12,6 +12,8 @@ export default defineConfig({
   base: '/ann-book/',
   cleanUrls: true,
   lastUpdated: true,
+  // docs/book/ 下的页面文件名沿用 chapters/ 的 NN_slug.md，这里映射成干净的地址
+  rewrites: bookRewrites,
   head: [
     ['meta', { property: 'og:title', content: '人人能懂的人工神经网络' }],
     ['meta', { property: 'og:image', content: 'https://zxh0.github.io/ann-book/ann.jpg' }],
@@ -36,17 +38,22 @@ export default defineConfig({
 
     sidebar: {
       '/notes': [{ text: '图解 LLM 系列笔记', link: '/notes', items: sidebar }],
-      '/book': [{ text: '本书', items: [{ text: '进度和目录（WIP）', link: '/book' }] }],
+      '/book': [
+        { text: '本书', items: [{ text: '进度和目录', link: '/book' }, ...bookSidebar] },
+      ],
     },
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/zxh0/ann-book' }],
 
     editLink: {
-      // 站点里的 /notes/xxx 和仓库里的 notes/xxx.md 一一对应
+      // 站点里的 /notes/xxx 和仓库里的 notes/xxx.md 一一对应；
+      // 书的页面文件名保留了 chapters/ 的原名，前缀换掉就是源文件
       pattern: ({ filePath }) =>
         filePath.startsWith('notes/')
           ? `https://github.com/zxh0/ann-book/edit/main/${filePath}`
-          : 'https://github.com/zxh0/ann-book/issues',
+          : filePath.startsWith('book/')
+            ? `https://github.com/zxh0/ann-book/edit/main/book/chapters/${filePath.slice(5)}`
+            : 'https://github.com/zxh0/ann-book/issues',
       text: '在 GitHub 上纠错',
     },
 
@@ -72,7 +79,7 @@ export default defineConfig({
           },
         },
         translations: {
-          button: { buttonText: '搜索笔记', buttonAriaLabel: '搜索笔记' },
+          button: { buttonText: '搜索', buttonAriaLabel: '搜索' },
           modal: {
             displayDetails: '显示详情',
             resetButtonTitle: '清除',
