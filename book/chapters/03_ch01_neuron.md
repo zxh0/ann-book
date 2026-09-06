@@ -202,14 +202,16 @@ $$
 
 GPU在通用计算上不如CPU，但非常擅长向量点积这类运算，能够大规模并行执行大量计算任务。虽然对单个神经元来说，在CPU还是GPU上计算差别不大，但对于动辄拥有成百上千亿个参数的神经网络而言，两者的速度差距就天壤之别了。
 
-现在我们来修改前面的Python代码，主要做两处调整：第一，构造神经元时，将参数`w`从数值类型改为列表类型（用以表示向量）；第二，神经元计算环节，把普通乘法替换为向量点积。新增的点积函数，以及修改后的神经元构造函数，代码如下：
+现在我们来修改前面的Python代码，主要做两处调整：第一，构造神经元时，将参数`w`从单个数值改为 NumPy 数组（用以表示向量）；第二，神经元计算环节，把普通乘法替换为向量点积。点积本身 NumPy 一个运算符就能算完，但这里我们先手写一遍，把“对应位置相乘再累加”这个过程摊开看清楚。新增的点积函数，以及修改后的神经元构造函数，代码如下：
 
 ```python
-def dot_product(a: list[float], b: list[float]) -> float:
-    return sum(x * y for x, y in zip(a, b))
+# 手写实现，用于逐步演示点积的计算过程。
+# NumPy 有现成实现：vec_a @ vec_b（也可以写成 np.dot(vec_a, vec_b)）
+def dot_product(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
+    return sum(x * y for x, y in zip(vec_a, vec_b))
 
-def new_neuron(w: list[float], b: float, af):
-    return lambda x: af(dot_product(w, x) + b)
+def new_neuron(vec_w: np.ndarray, b: float, af):
+    return lambda vec_x: af(dot_product(vec_w, vec_x) + b)
 ```
 
 神经元的代码已经准备就绪，现在我们用它来搭建一个简单的应用案例：这个应用接收三个输入 $x_1$ 、 $x_2$ 、 $x_3$ ，判断 $x_1$ 与 $x_2$ 之和是否大于 $x_3$ ，并将判断结果作为输出。对我们实现的神经元来说，完成这个任务易如反掌，只需为它设置合适的权重和偏置参数即可。将三个权重分别设置为：1、1、-1，将偏置设置为0，我们期望的计算如以下等式所示：
@@ -221,9 +223,9 @@ $$
 这里其实不用激活函数也可行，不过为了演示效果，我们选用最简单的ReLU函数。若最终输出大于0，则表示正向判断；反之则为反向判断。完整的应用代码和测试如下：
 
 ```python
-neuron = new_neuron(w=[1, 1, -1], b=0, af=relu)
-print(neuron([1, 2, 3]) > 0) # False
-print(neuron([4, 5, 6]) > 0) # True
+neuron = new_neuron(vec_w=np.array([1, 1, -1]), b=0, af=relu)
+print(neuron(np.array([1, 2, 3])) > 0) # False
+print(neuron(np.array([4, 5, 6])) > 0) # True
 ```
 
 经过一番努力，我们的迷你“神经网络”已经拥有了四个参数（三个权重和一个偏置），它能判断某两个数之和是否大于第三个数。是不是很了不起？我们可以把它封装起来，对外提供服务啦，如下图所示：

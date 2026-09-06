@@ -78,12 +78,12 @@ def word_one_hot(txt: str):
     vocab = sorted(set(tokenize(txt)))
 
     # 2. 生成 one-hot 矩阵
-    one_hot = np.eye(len(vocab), dtype=int)
+    mat_one_hot = np.eye(len(vocab), dtype=int)
 
     # 3. 打印每个 token 及其 one-hot vector
     max_len = max(len(repr(token)) for token in vocab)
     for idx, token in enumerate(vocab):
-        print(f"{repr(token):<{max_len}}: {one_hot[idx].tolist()}")
+        print(f"{repr(token):<{max_len}}: {mat_one_hot[idx].tolist()}")
 
 txt = "To be, or not to be, that is the question."
 word_one_hot(txt)

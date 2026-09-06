@@ -45,13 +45,13 @@ $$
 这种表示方式的好处在于：屏蔽了复杂的数学细节、突出了信息流动的路径，为后续理解 LSTM / GRU 打下基础。理解了这一抽象之后，我们会发现：所谓“门”，在实现上其实非常简单。本质上，它仍然是一个带有输入和隐藏状态的线性变换加激活函数。因此，我们完全可以用几行 Python 代码来实现一个“门”的创建与计算过程。为了便于对比，我们也把之前全连接层的实现一起列出。通过对比你会发现：Gate 和全连接层的区别，仅仅在于“是否引入了隐藏状态”这一额外输入。下面是对应的完整代码实现：
 
 ```python
-# x => y
-def new_fc_layer(w, b, af):
-    return lambda x: af(w @ x + b)
+# vec_x => vec_y
+def new_fc_layer(mat_w, vec_b, af):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
-# x, h => h'
-def new_gate(w_xh, w_hh, b_h, af):
-    return lambda x, h: af(w_xh @ x + w_hh @ h + b_h)
+# vec_x, vec_h => vec_h'
+def new_gate(mat_w_xh, mat_w_hh, vec_b_h, af):
+    return lambda vec_x, vec_h: af(mat_w_xh @ vec_x + mat_w_hh @ vec_h + vec_b_h)
 ```
 
 
@@ -152,15 +152,15 @@ def new_lstm_layer(forget_gate,
                    output_gate, 
                    candidate_gate,
                    fc_layer):
-    def layer(x, h, c):
-        _f = forget_gate(x, h)
-        _i = input_gate(x, h)
-        _o = output_gate(x, h)
-        _c = candidate_gate(x, h)
-        new_c = _f * c + _i * _c
-        new_t = _o * tanh(new_c)
-        y = fc_layer(new_t)
-        return y
+    def layer(vec_x, vec_h, vec_c):
+        vec_f = forget_gate(vec_x, vec_h)
+        vec_i = input_gate(vec_x, vec_h)
+        vec_o = output_gate(vec_x, vec_h)
+        vec_c_hat = candidate_gate(vec_x, vec_h)
+        vec_c_new = vec_f * vec_c + vec_i * vec_c_hat
+        vec_h_new = vec_o * tanh(vec_c_new)
+        vec_y = fc_layer(vec_h_new)
+        return vec_y
     return layer
 ```
 
@@ -190,13 +190,13 @@ $$
 
 ```python
 def new_gru_layer(update_gate, reset_gate, tanh_gate):
-    def layer(x, h):
-        _z = update_gate(x, h)
-        _r = reset_gate(x, h)
-        _h = tanh_gate(x, _r * h)
-        new_h = (1 - _z) * h + _z * _h
-        y = fc_layer(new_t)
-        return y
+    def layer(vec_x, vec_h):
+        vec_z = update_gate(vec_x, vec_h)
+        vec_r = reset_gate(vec_x, vec_h)
+        vec_h_hat = tanh_gate(vec_x, vec_r * vec_h)
+        vec_h_new = (1 - vec_z) * vec_h + vec_z * vec_h_hat
+        vec_y = fc_layer(vec_h_new)
+        return vec_y
     return layer
 ```
 

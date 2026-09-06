@@ -1,14 +1,14 @@
 import numpy as np
 
-def new_fc_layer(w, b, af=np.tanh):
-    return lambda x: af(w @ x + b)
+def new_fc_layer(mat_w, vec_b, af=np.tanh):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
 def new_mlp(layers: list):
-    def mlp(x):
-        current = x # 保存输入，逐层向前传播
+    def mlp(vec_x):
+        vec_current = vec_x # 保存输入，逐层向前传播
         for layer in layers:
-            current = layer(current)  # 一层一层计算
-        return current
+            vec_current = layer(vec_current)  # 一层一层计算
+        return vec_current
     return mlp
 
 

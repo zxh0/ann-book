@@ -60,12 +60,12 @@ $$
 接下来，我们用一段 Python 代码来实现一个简单的玩具 RNN 层，帮助你加深对这些公式的理解：
 
 ```python
-def new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, af):
-  def rnn_layer(x):
-    nonlocal h  # 声明使用外部的h
-    h = af(w_xh @ x + w_hh @ h + b_h)
-    y = af(w_hy @ h + b_y)
-    return y
+def new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, af):
+  def rnn_layer(vec_x):
+    nonlocal vec_h  # 声明使用外部的隐藏状态
+    vec_h = af(mat_w_xh @ vec_x + mat_w_hh @ vec_h + vec_b_h)
+    vec_y = af(mat_w_hy @ vec_h + vec_b_y)
+    return vec_h, vec_y
   return rnn_layer
 ```
 
@@ -130,16 +130,16 @@ $$
 
 ```python
 _x, _h, _y = 3, 4, 2
-w_xh = np.random.rand(_h, _x) # 4×3
-w_hh = np.random.rand(_h, _h) # 4×4
-w_hy = np.random.rand(_y, _h) # 2x4
-b_h = np.random.rand(_h)      # 4×1
-b_y = np.random.rand(_y)      # 2×1
-h = np.zeros(_h)              # 4×1
-x = np.random.rand(_x)        # 3×1
-layer = new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, np.tanh)
-h2, y = layer(x)
-print(h2, y)
+mat_w_xh = np.random.rand(_h, _x) # 4×3
+mat_w_hh = np.random.rand(_h, _h) # 4×4
+mat_w_hy = np.random.rand(_y, _h) # 2x4
+vec_b_h = np.random.rand(_h)      # 4×1
+vec_b_y = np.random.rand(_y)      # 2×1
+vec_h = np.zeros(_h)              # 4×1
+vec_x = np.random.rand(_x)        # 3×1
+layer = new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, np.tanh)
+vec_h2, vec_y = layer(vec_x)
+print(vec_h2, vec_y)
 ```
 
 
@@ -167,12 +167,12 @@ print(h2, y)
 注意，我们在示例中暂时使用随机数来表示每一步的输入向量，并且写死循环次数为10。在后续小节中，我会详细介绍如何将一段真实文本转换成这样一系列的输入向量。示例代码如下所示：
 
 ```python
-layer = new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, np.tanh)
+layer = new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, np.tanh)
 
 for i in range(10):
-    x = np.random.rand(_x)
-    h, y = layer(x)
-    print(f't{i}: x={x.round(3)}, y={y.round(3)}, h={h.round(3)}')
+    vec_x = np.random.rand(_x)
+    vec_h, vec_y = layer(vec_x)
+    print(f't{i}: vec_x={vec_x.round(3)}, vec_y={vec_y.round(3)}, vec_h={vec_h.round(3)}')
 ```
 
 跑一下上面的代码，可以打印出类似下面这样的内容：
@@ -206,12 +206,12 @@ t9: x=[0.563 0.183 0.388], y=[0.989 0.983], h=[0.994 0.992 0.997 0.998]
 
 ```python
 def new_rnn(rnn_layers: list, fc_layer):
-    def rnn(x):
-        current = x                     # 保存输入，逐层向前传播
-        for rnn_layer in rnn_layers:    # 遍历每一个RNN层
-            _h, _y = rnn_layer(current) # 一层一层计算
-            current = _y                # 忽略隐藏状态
-        return fc_layer(current)        # 全连接层计算
+    def rnn(vec_x):
+        vec_current = vec_x                  # 保存输入，逐层向前传播
+        for rnn_layer in rnn_layers:         # 遍历每一个RNN层
+            vec_h, vec_y = rnn_layer(vec_current) # 一层一层计算
+            vec_current = vec_y              # 忽略隐藏状态
+        return fc_layer(vec_current)         # 全连接层计算
     return rnn
 ```
 
@@ -281,11 +281,11 @@ def char_one_hot(txt: str):
     vocab = sorted(set(txt))
 
     # 2. 生成 one-hot 矩阵
-    one_hot = np.eye(len(vocab), dtype=int)
+    mat_one_hot = np.eye(len(vocab), dtype=int)
 
     # 3. 打印每个 char 及其 one-hot vector
     for idx, ch in enumerate(vocab):
-        print(f"{repr(ch)}: {one_hot[idx].tolist()}")
+        print(f"{repr(ch)}: {mat_one_hot[idx].tolist()}")
 
 txt = "To be, or not to be, that is the question."
 char_one_hot(txt)
@@ -402,10 +402,13 @@ $$
 ```python
 from math import e
 
-def softmax(z: list[float], t: float) -> list[float]:
-    exp_values = [e ** (v/t) for v in z]
-    total = sum(exp_values)
-    return [v / total for v in exp_values]
+# 手写实现，用于逐步演示带温度的 Softmax 的计算过程。
+# NumPy 没有现成的 Softmax，但 np.exp 可以一次算完整个向量，
+# 于是整个函数可以简写成一行：np.exp(vec_z/t) / np.exp(vec_z/t).sum()
+def softmax(vec_z: np.ndarray, t: float) -> np.ndarray:
+    vec_exp = [e ** (v/t) for v in vec_z]
+    total = sum(vec_exp)
+    return np.array([v / total for v in vec_exp])
 ```
 
 从新的归一化公式可以看出：
@@ -465,13 +468,15 @@ $$
 ```python
 import random
 
-def sample_by_prob(probs: list[float]) -> int:
+# 手写实现，用于逐步演示按概率采样的过程。
+# NumPy 有现成实现：np.random.choice(len(vec_probs), p=vec_probs)
+def sample_by_prob(vec_probs: np.ndarray) -> int:
     # 生成 0~1 之间的随机数
     rand = random.random()
     
     # 累计概率，判断落在哪个区间
     cumulative = 0.0
-    for idx, prob in enumerate(probs):
+    for idx, prob in enumerate(vec_probs):
         cumulative += prob
         if rand < cumulative:
             return idx
