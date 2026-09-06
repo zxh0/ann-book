@@ -25,9 +25,9 @@ TODO：
 KQV计算：
 
 $$
-Q_1 = X_1 \times W_q \\
-K_1 = X_1 \times W_k \\
-V_1 = X_1 \times W_v
+\mathbf{q}_1 = \mathbf{x}_1 \times W_q \\
+\mathbf{k}_1 = \mathbf{x}_1 \times W_k \\
+\mathbf{v}_1 = \mathbf{x}_1 \times W_v
 $$
 
 矩阵：
@@ -66,7 +66,7 @@ def calc_qkv(w_q, w_k, w_v, x):
 分数：
 
 $$
-score_{ij} = \mathrm{softmax}(\frac{Q_i \cdot K_j}{\sqrt{d_k}})
+score_{ij} = \mathrm{softmax}(\frac{\mathbf{q}_i \cdot \mathbf{k}_j}{\sqrt{d_k}})
 $$
 
 用矩阵表示：
@@ -92,7 +92,7 @@ def calc_score(q, k, v, sqrt_d_k):
 V加权求和：
 
 $$
-Z_i = \sum_{j=1}^{n}{score_{ij} \times V_j}
+\mathbf{z}_i = \sum_{j=1}^{n}{score_{ij} \times \mathbf{v}_j}
 $$
 
 用矩阵表示：
