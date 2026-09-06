@@ -89,15 +89,15 @@ $$
 ```python
 import numpy as np
 
-def new_fc_layer(w, b, af=np.tanh):
-    return lambda x: af(w @ x + b)
+def new_fc_layer(mat_w, vec_b, af=np.tanh):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
 def new_mlp(layers: list):
-    def mlp(x):
-        current = x # 保存输入，逐层向前传播
+    def mlp(vec_x):
+        vec_current = vec_x # 保存输入，逐层向前传播
         for layer in layers:
-            current = layer(current)  # 一层一层计算
-        return current
+            vec_current = layer(vec_current)  # 一层一层计算
+        return vec_current
     return mlp
 ```
 
@@ -168,10 +168,13 @@ $$
 这个公式本身并不难理解，如果你熟悉Python语言，仅需三行代码就能实现：
 
 ```python
-def softmax(z: list[float]) -> list[float]:
-    exp_values = [e ** v for v in z]
-    total = sum(exp_values)
-    return [v / total for v in exp_values]
+# 手写实现，用于逐步演示计算过程。
+# NumPy 没有现成的 Softmax，但 np.exp 可以一次算完整个向量，
+# 于是整个函数可以简写成一行：np.exp(vec_z) / np.exp(vec_z).sum()
+def softmax(vec_z: np.ndarray) -> np.ndarray:
+    vec_exp = [e ** v for v in vec_z]
+    total = sum(vec_exp)
+    return np.array([v / total for v in vec_exp])
 ```
 
 不过还是有几点重要的细节需要说明。第一，虽然有些资料会把Softmax归为一种激活函数，但它与常见的激活函数存在本质区别。常见的激活函数通常是逐元素进行计算的，也就是说，每个神经元的输出只依赖于对应的输入值，彼此之间互不影响。而Softmax则不同：它的分母包含了所有神经元的输出，因此每一个输出都依赖整个向量，而不是逐元素计算得到的。

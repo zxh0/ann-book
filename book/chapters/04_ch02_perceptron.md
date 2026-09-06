@@ -158,16 +158,16 @@ $$
 ```python
 import numpy as np
 
-def new_fc_layer(w, b, af):
-    return lambda x: af(w @ x + b)
+def new_fc_layer(mat_w, vec_b, af):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
-w = np.array([[0.11, 0.12, 0.13],
+mat_w = np.array([[0.11, 0.12, 0.13],
               [0.21, 0.22, 0.23]])
-b = np.array([0.31, 0.32])
+vec_b = np.array([0.31, 0.32])
 
-layer = new_fc_layer(w, b, np.tanh) 
-x = np.array([0.4, 0.5, 0.6])
-print(layer(x)) # [0.45580236 0.57301481]
+layer = new_fc_layer(mat_w, vec_b, np.tanh) 
+vec_x = np.array([0.4, 0.5, 0.6])
+print(layer(vec_x)) # [0.45580236 0.57301481]
 ```
 
 我们通过 NumPy 提供的 `array` 方法来创建矩阵与向量。特别需要注意代码中的 `@` 运算符，它是 NumPy 中专门用于矩阵乘法的符号。虽然输入参数 `x` 是一个一维向量，但 NumPy 会自动将其视为 3×1 的列向量参与运算，无需我们手动转换，使用起来非常方便。另外，NumPy还提供了Tanh激活函数，我们在测试代码里直接使用就可以了。

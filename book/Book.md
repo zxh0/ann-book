@@ -292,19 +292,25 @@ TODO：放上GitHub仓库链接？
 
 在本书的公式和图表中，我们用小写字母（例如 $x$ ）来表示标量，用**粗体**小写字母（例如 $\mathbf{x}$ ）来表示向量，用大写字母（例如 $X$ ）来表示矩阵。这样一来，只要看字母的形态，就能分辨出它代表的是哪一种数据，不需要再依赖上下文去猜。如果出现三阶张量，我会用大写字母配合方括号来表示（例如 $[X]$ ），以便和矩阵做一个简单区分。更高阶的张量在正文中出现得不多，即使出现，也会结合具体语境进行解释。
 
-在示例代码中，为了尽量降低理解门槛，我会使用尽可能简单直观的表示方式：通常用 Python 的 `float` 类型来表示标量，用列表（`list`）来表示向量，用嵌套列表来表示矩阵以及更高维的数据结构。这种表示方式虽然不够高效，但胜在直观，便于理解其结构。
+在示例代码中，标量仍然用 Python 的 `float` 类型来表示；而向量、矩阵以及更高维的数据结构，统一用 NumPy 的数组（`np.array`）来表示。为了让代码和公式对得上，变量的命名也遵循一个简单约定：向量以 `vec` 开头，矩阵以 `mat` 开头。这样一来，读代码时不必回头去查某个变量到底是几维的，看名字就知道。
 
-需要稍微提醒的是，在实际工程中（例如使用 NumPy 或 PyTorch 时），这些数据通常会用专门的数组或张量类型来表示，它们在性能和功能上都更强大。但在本书中，我们更关注概念本身，因此会优先选择更容易理解的表达方式。
+这里有一点需要提前说明。本书有少数代码的目的，恰恰是把某个运算**一步一步算给你看**——比如后面第一章会手写一个计算向量点积的函数，第三章会手写 Softmax 函数，第四章会手写卷积的加权求和。这些运算 NumPy 大多一行就能算完，可那样一来，要讲解的计算过程也就被藏起来了。所以这类函数我们仍然手写循环，把对应位置相乘、逐项累加的过程摊开。
+
+但即便是这类手写实现，输入输出用的依然是 NumPy 数组——因为 NumPy 数组本身就可以逐元素遍历、也支持按下标取值，手写的循环照原样就能跑，不必退回 Python 原生列表。这样一来全书的数据类型是统一的，你也不会在“这里是列表、那里是数组”之间来回切换。我会在这类函数上方用注释注明 NumPy 的现成写法，你可以对照着看：上面是摊开的过程，下面是实际项目里该用的一行。
+
+需要稍微提醒的是，在实际工程中（例如使用 PyTorch 时），这些数据还会用专门的张量类型来表示，在性能和功能上更强大。但在本书中，我们更关注概念本身，NumPy 数组已经足够表达全部要点。
 
 维度、空间、离散数值、Python 数据类型，以及本书中符号表示之间的对应关系，可以通过下面这个表格来做一个整体性的理解：
 
-| 维度 | 连续空间 | 离散数值       | Python类型                | 本书约定                          |
-| ---- | -------- | -------------- | ------------------------- | --------------------------------- |
-| 零维 | 点       | 标量（Scalar） | `float`                   | 小写字母，例如 $x$                |
-| 一维 | 直线     | 向量（Vector） | `list[float]`             | 粗体小写字母，例如 $\mathbf{x}$   |
-| 二维 | 平面     | 矩阵（Matrix） | `list[list[float]]`       | 大写字母，例如 $Y$                |
-| 三维 | 立体     | 三阶张量       | `list[list[list[float]]]` | [大写字母]，例如 $[Z]$            |
-| n维  |          | n阶张量        |                           |                                   |
+| 维度 | 连续空间 | 离散数值       | Python类型 | 公式记法                        | 变量命名   |
+| ---- | -------- | -------------- | ---------- | ------------------------------- | ---------- |
+| 零维 | 点       | 标量（Scalar） | `float`    | 小写字母，例如 $x$              | 无特殊要求 |
+| 一维 | 直线     | 向量（Vector） | `np.array` | 粗体小写字母，例如 $\mathbf{x}$ | `vec` 开头 |
+| 二维 | 平面     | 矩阵（Matrix） | `np.array` | 大写字母，例如 $Y$              | `mat` 开头 |
+| 三维 | 立体     | 三阶张量       | `np.array` | [大写字母]，例如 $[Z]$          |            |
+| n维  |          | n阶张量        | `np.array` |                                 |            |
+
+这张表对全书代码一律适用，包括上面提到的那些手写实现——它们只是把计算过程摊开写，用的数据类型仍然是 NumPy 数组。
 
 
 
@@ -441,15 +447,15 @@ NumPy 是 Python 生态中一个非常重要、也非常常用的库，几乎是
 ```python
 import numpy as np
 
-a = np.array([1, 2, 3])
-b = np.array([4, 5, 6])
+vec_a = np.array([1, 2, 3])
+vec_b = np.array([4, 5, 6])
 
-print(a + 1) # [2 3 4]
-print(a * 2) # [2 4 6]
-print(a + b) # [5 7 9]
-print(a - b) # [-3 -3 -3]
-print(a * b) # [ 4 10 18]
-print(a @ b) # 32
+print(vec_a + 1)     # [2 3 4]
+print(vec_a * 2)     # [2 4 6]
+print(vec_a + vec_b) # [5 7 9]
+print(vec_a - vec_b) # [-3 -3 -3]
+print(vec_a * vec_b) # [ 4 10 18]
+print(vec_a @ vec_b) # 32
 ```
 
 接下来是矩阵的相关计算示例。通过 `shape` 属性，我们可以方便地获取一个矩阵（或者更高维张量）的形状信息。在矩阵运算中，同样需要注意：默认的乘法依然是逐元素相乘（也就是前面提到的哈达玛积）；如果需要进行标准的矩阵乘法，也需要使用 `@` 运算符来表示。
@@ -457,23 +463,23 @@ print(a @ b) # 32
 ```python
 import numpy as np
 
-a = np.array([[1, 2, 3], [4, 5, 6]])
-b = np.array([[2, 3, 4], [5, 6, 7]])
-c = np.array([[1, 2], [3, 4], [5, 6]])
+mat_a = np.array([[1, 2, 3], [4, 5, 6]])
+mat_b = np.array([[2, 3, 4], [5, 6, 7]])
+mat_c = np.array([[1, 2], [3, 4], [5, 6]])
 
-print(a.shape) # (2, 3)
-print(c.shape) # (3, 2)
-print(a + 1)   # [[ 2  3  4] [ 5  6  7]]
-print(a * 2)   # [[ 2  4  6] [ 8 10 12]]
-print(a + b)   # [[ 3  5  7] [ 9 11 13]]
-print(a - b)   # [[-1 -1 -1] [-1 -1 -1]]
-print(a * b)   # [[ 2  6 12] [20 30 42]]
-print(b * a)   # [[ 2  6 12] [20 30 42]]
-print(a @ c)   # [[22 28] [49 64]]
-print(c @ a)   # [[ 9 12 15] [19 26 33] [29 40 51]]
+print(mat_a.shape)   # (2, 3)
+print(mat_c.shape)   # (3, 2)
+print(mat_a + 1)     # [[ 2  3  4] [ 5  6  7]]
+print(mat_a * 2)     # [[ 2  4  6] [ 8 10 12]]
+print(mat_a + mat_b) # [[ 3  5  7] [ 9 11 13]]
+print(mat_a - mat_b) # [[-1 -1 -1] [-1 -1 -1]]
+print(mat_a * mat_b) # [[ 2  6 12] [20 30 42]]
+print(mat_b * mat_a) # [[ 2  6 12] [20 30 42]]
+print(mat_a @ mat_c) # [[22 28] [49 64]]
+print(mat_c @ mat_a) # [[ 9 12 15] [19 26 33] [29 40 51]]
 ```
 
-对于三阶及以上的张量，本书不会涉及太多具体的计算细节，因此这里不再展开演示。在后续章节中，如果需要详细展示某一步的计算过程，我通常会使用 Python 原生的列表来表达，以便读者更直观地理解；而在不需要关注具体计算细节、只关心整体流程时，则会更多使用 NumPy 来书写代码，使表达更加简洁清晰。
+对于三阶及以上的张量，本书不会涉及太多具体的计算细节，因此这里不再展开演示。在后续章节中，无论是详细展示某一步的计算过程，还是只关心整体流程，向量和矩阵都统一用 NumPy 数组来书写，变量命名也统一遵循前面提到的 `vec` / `mat` 约定，这样各章的代码彼此对得上，读起来也和公式一致。
 
 
 
@@ -699,14 +705,16 @@ $$
 
 GPU在通用计算上不如CPU，但非常擅长向量点积这类运算，能够大规模并行执行大量计算任务。虽然对单个神经元来说，在CPU还是GPU上计算差别不大，但对于动辄拥有成百上千亿个参数的神经网络而言，两者的速度差距就天壤之别了。
 
-现在我们来修改前面的Python代码，主要做两处调整：第一，构造神经元时，将参数`w`从数值类型改为列表类型（用以表示向量）；第二，神经元计算环节，把普通乘法替换为向量点积。新增的点积函数，以及修改后的神经元构造函数，代码如下：
+现在我们来修改前面的Python代码，主要做两处调整：第一，构造神经元时，将参数`w`从单个数值改为 NumPy 数组（用以表示向量）；第二，神经元计算环节，把普通乘法替换为向量点积。点积本身 NumPy 一个运算符就能算完，但这里我们先手写一遍，把“对应位置相乘再累加”这个过程摊开看清楚。新增的点积函数，以及修改后的神经元构造函数，代码如下：
 
 ```python
-def dot_product(a: list[float], b: list[float]) -> float:
-    return sum(x * y for x, y in zip(a, b))
+# 手写实现，用于逐步演示点积的计算过程。
+# NumPy 有现成实现：vec_a @ vec_b（也可以写成 np.dot(vec_a, vec_b)）
+def dot_product(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
+    return sum(x * y for x, y in zip(vec_a, vec_b))
 
-def new_neuron(w: list[float], b: float, af):
-    return lambda x: af(dot_product(w, x) + b)
+def new_neuron(vec_w: np.ndarray, b: float, af):
+    return lambda vec_x: af(dot_product(vec_w, vec_x) + b)
 ```
 
 神经元的代码已经准备就绪，现在我们用它来搭建一个简单的应用案例：这个应用接收三个输入 $x_1$ 、 $x_2$ 、 $x_3$ ，判断 $x_1$ 与 $x_2$ 之和是否大于 $x_3$ ，并将判断结果作为输出。对我们实现的神经元来说，完成这个任务易如反掌，只需为它设置合适的权重和偏置参数即可。将三个权重分别设置为：1、1、-1，将偏置设置为0，我们期望的计算如以下等式所示：
@@ -718,9 +726,9 @@ $$
 这里其实不用激活函数也可行，不过为了演示效果，我们选用最简单的ReLU函数。若最终输出大于0，则表示正向判断；反之则为反向判断。完整的应用代码和测试如下：
 
 ```python
-neuron = new_neuron(w=[1, 1, -1], b=0, af=relu)
-print(neuron([1, 2, 3]) > 0) # False
-print(neuron([4, 5, 6]) > 0) # True
+neuron = new_neuron(vec_w=np.array([1, 1, -1]), b=0, af=relu)
+print(neuron(np.array([1, 2, 3])) > 0) # False
+print(neuron(np.array([4, 5, 6])) > 0) # True
 ```
 
 经过一番努力，我们的迷你“神经网络”已经拥有了四个参数（三个权重和一个偏置），它能判断某两个数之和是否大于第三个数。是不是很了不起？我们可以把它封装起来，对外提供服务啦，如下图所示：
@@ -925,16 +933,16 @@ $$
 ```python
 import numpy as np
 
-def new_fc_layer(w, b, af):
-    return lambda x: af(w @ x + b)
+def new_fc_layer(mat_w, vec_b, af):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
-w = np.array([[0.11, 0.12, 0.13],
+mat_w = np.array([[0.11, 0.12, 0.13],
               [0.21, 0.22, 0.23]])
-b = np.array([0.31, 0.32])
+vec_b = np.array([0.31, 0.32])
 
-layer = new_fc_layer(w, b, np.tanh) 
-x = np.array([0.4, 0.5, 0.6])
-print(layer(x)) # [0.45580236 0.57301481]
+layer = new_fc_layer(mat_w, vec_b, np.tanh) 
+vec_x = np.array([0.4, 0.5, 0.6])
+print(layer(vec_x)) # [0.45580236 0.57301481]
 ```
 
 我们通过 NumPy 提供的 `array` 方法来创建矩阵与向量。特别需要注意代码中的 `@` 运算符，它是 NumPy 中专门用于矩阵乘法的符号。虽然输入参数 `x` 是一个一维向量，但 NumPy 会自动将其视为 3×1 的列向量参与运算，无需我们手动转换，使用起来非常方便。另外，NumPy还提供了Tanh激活函数，我们在测试代码里直接使用就可以了。
@@ -1147,15 +1155,15 @@ $$
 ```python
 import numpy as np
 
-def new_fc_layer(w, b, af=np.tanh):
-    return lambda x: af(w @ x + b)
+def new_fc_layer(mat_w, vec_b, af=np.tanh):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
 def new_mlp(layers: list):
-    def mlp(x):
-        current = x # 保存输入，逐层向前传播
+    def mlp(vec_x):
+        vec_current = vec_x # 保存输入，逐层向前传播
         for layer in layers:
-            current = layer(current)  # 一层一层计算
-        return current
+            vec_current = layer(vec_current)  # 一层一层计算
+        return vec_current
     return mlp
 ```
 
@@ -1226,10 +1234,13 @@ $$
 这个公式本身并不难理解，如果你熟悉Python语言，仅需三行代码就能实现：
 
 ```python
-def softmax(z: list[float]) -> list[float]:
-    exp_values = [e ** v for v in z]
-    total = sum(exp_values)
-    return [v / total for v in exp_values]
+# 手写实现，用于逐步演示计算过程。
+# NumPy 没有现成的 Softmax，但 np.exp 可以一次算完整个向量，
+# 于是整个函数可以简写成一行：np.exp(vec_z) / np.exp(vec_z).sum()
+def softmax(vec_z: np.ndarray) -> np.ndarray:
+    vec_exp = [e ** v for v in vec_z]
+    total = sum(vec_exp)
+    return np.array([v / total for v in vec_exp])
 ```
 
 不过还是有几点重要的细节需要说明。第一，虽然有些资料会把Softmax归为一种激活函数，但它与常见的激活函数存在本质区别。常见的激活函数通常是逐元素进行计算的，也就是说，每个神经元的输出只依赖于对应的输入值，彼此之间互不影响。而Softmax则不同：它的分母包含了所有神经元的输出，因此每一个输出都依赖整个向量，而不是逐元素计算得到的。
@@ -1337,13 +1348,15 @@ $$
 如果你对公式感到头疼，我们也完全可以用 Python 代码来表达这一计算过程，理解起来会更直观。它本质上只是一个两层循环：
 
 ```python
-def weighted_sum(x: list[list[float]], 
-                 w: list[list[float]], 
+# 手写实现，用于逐步演示加权求和的计算过程。
+# NumPy 有现成实现：np.sum(mat_x * mat_w)
+def weighted_sum(mat_x: np.ndarray,
+                 mat_w: np.ndarray,
                  k: int) -> float:
     total = 0.0
     for i in range(k):
         for j in range(k):
-            total += w[i][j] * x[i][j]
+            total += mat_x[i][j] * mat_w[i][j]
     return total
 ```
 
@@ -1384,11 +1397,11 @@ $$
 如果我们把前一小节介绍的卷积核加权求和过程抽象出来，将其视为一个作用于滑动窗口的独立函数，那么滑动窗口的主体逻辑就可以只关注窗口的移动规则，而不必关心内部具体如何计算。对应的 Python 实现如下：
 
 ```python
-def apply_sliding_window(input_mat, k_h, k_w, stride, func):
-    h, w = input_mat.shape                # 获取输入矩阵的高、宽
-    out_h = (h - k_h) // stride + 1       # 计算输出矩阵的高、宽
-    out_w = (w - k_w) // stride + 1       #
-    output_mat = np.zeros((out_h, out_w)) # 初始化输出矩阵
+def apply_sliding_window(mat_input, k_h, k_w, stride, func):
+    h, w = mat_input.shape                   # 获取输入矩阵的高、宽
+    out_h = (h - k_h) // stride + 1          # 计算输出矩阵的高、宽
+    out_w = (w - k_w) // stride + 1          #
+    mat_output = np.zeros((out_h, out_w))    # 初始化输出矩阵
 
     # 开始滑动窗口
     for i in range(out_h):
@@ -1396,12 +1409,12 @@ def apply_sliding_window(input_mat, k_h, k_w, stride, func):
             # 截取当前窗口
             start_i = i * stride
             start_j = j * stride
-            window = input_mat[start_i:start_i + k_h, start_j:start_j + k_w]
+            mat_window = mat_input[start_i:start_i + k_h, start_j:start_j + k_w]
 
             # 进行计算
-            output_mat[i, j] = func(window)
+            mat_output[i, j] = func(mat_window)
 
-    return output_mat
+    return mat_output
 ```
 
 需要注意的是，该函数包含一个 `stride` 参数。这里我们先假设其值为 1，即暂时不产生实际效果，关于它的具体作用，我们会在后续小节详细介绍。此外，函数内部也已经考虑了窗口为矩形的通用情况。
@@ -1425,15 +1438,15 @@ def apply_sliding_window(input_mat, k_h, k_w, stride, func):
 虽然手动实现填充逻辑并不复杂，但 NumPy 已经内置了 `pad` 方法，我们直接使用即可，既简洁又可靠。下面就是基于它实现的零填充函数：
 
 ```python
-def zero_pad(input_mat, padding):
+def zero_pad(mat_input, padding):
     if padding > 0:
         return np.pad(
-            input_mat,
+            mat_input,
             pad_width=((padding, padding), (padding, padding)),
             mode='constant',
             constant_values=0
         )
-    return input_mat
+    return mat_input
 ```
 
 
@@ -1471,12 +1484,12 @@ $$
 现在，我们使用 Python 代码完整实现卷积运算。这个函数能够灵活处理输入矩阵与卷积核不是正方形的情况。需要注意的是，我们直接通过 NumPy 的**逐元素相乘**（也叫哈达玛积，用星号表示）与内置的 `sum` 函数完成加权求和计算，没有使用之前我们自己定义的加权求和函数。完整的实现代码如下所示（TODO：补上激活函数）：
 
 ```python
-def conv2d(input_mat, kernel_mat, bias, padding=0, stride=1):
-    conv_func = lambda window: np.sum(window * kernel_mat) + bias # 卷积核计算
-    k_h, k_w = kernel_mat.shape # 获取输入卷积核的高、宽
-    input_mat = zero_pad(input_mat, padding) # 填充
-    output_mat = apply_sliding_window(input_mat, k_h, k_w, stride, conv_func)
-    return output_mat
+def conv2d(mat_input, mat_kernel, bias, padding=0, stride=1):
+    conv_func = lambda mat_window: np.sum(mat_window * mat_kernel) + bias # 卷积核计算
+    k_h, k_w = mat_kernel.shape # 获取输入卷积核的高、宽
+    mat_input = zero_pad(mat_input, padding) # 填充
+    mat_output = apply_sliding_window(mat_input, k_h, k_w, stride, conv_func)
+    return mat_output
 ```
 
 读到这里，相信你已经对卷积运算有了清晰的认识。就算暂时没完全弄懂也没关系，毕竟书里的图都是静态的，确实不太好直观理解。我帮你找到了一个很好用的在[线小工具](https://poloclub.github.io/cnn-explainer/)，你可以随意调整输入大小、填充圈数、卷积核大小和步幅，既能自动播放整个滑动窗口的过程，也能手动选中区域，看清输入和输出之间的对应关系。强烈建议你动手试一试，效果非常直观。下面是它的界面截图：
@@ -1507,12 +1520,12 @@ def conv2d(input_mat, kernel_mat, bias, padding=0, stride=1):
 
 ```python
 def new_conv_layer(kernel_list, padding=0, stride=1):
-    def conv_layer(input_mat):
-        output_mat_list = []
-        for kernel_mat, bias in kernel_list:
-            output_mat = conv2d(input_mat, kernel_mat, bias, padding, stride)
-            output_mat_list.append(output_mat)
-        return output_mat_list
+    def conv_layer(mat_input):
+        mat_output_list = []
+        for mat_kernel, bias in kernel_list:
+            mat_output = conv2d(mat_input, mat_kernel, bias, padding, stride)
+            mat_output_list.append(mat_output)
+        return mat_output_list
     return conv_layer
 ```
 
@@ -1590,26 +1603,26 @@ $$
 
 ```python
 def new_conv_layer2(kernel_list, padding=0, stride=1):
-    def conv_layer(input_mat_list):
-        output_mat_list = []
+    def conv_layer(mat_input_list):
+        mat_output_list = []
         
-        # 遍历每一个多通道卷积核 (kernel_mat_list, bias)
-        for kernel_mat_list, bias in kernel_list:
-            output_mat_list_tmp = []
+        # 遍历每一个多通道卷积核 (mat_kernel_list, bias)
+        for mat_kernel_list, bias in kernel_list:
+            mat_output_list_tmp = []
             
             # 遍历每个输入通道（对应每个卷积核通道）
-            for i in range(len(input_mat_list)):
-                input_mat = input_mat_list[i]
-                kernel_mat = kernel_mat_list[i]
-                output_mat = conv2d(input_mat, kernel_mat, 0, padding, stride)
-                output_mat_list_tmp.append(output_mat)
+            for i in range(len(mat_input_list)):
+                mat_input = mat_input_list[i]
+                mat_kernel = mat_kernel_list[i]
+                mat_output = conv2d(mat_input, mat_kernel, 0, padding, stride)
+                mat_output_list_tmp.append(mat_output)
             
             # 所有通道结果逐元素相加 → 再加偏置
-            fused_mat = np.sum(output_mat_list_tmp, axis=0)
-            output_mat = fused_mat + bias
-            output_mat_list.append(output_mat)
+            mat_fused = np.sum(mat_output_list_tmp, axis=0)
+            mat_output = mat_fused + bias
+            mat_output_list.append(mat_output)
         
-        return output_mat_list
+        return mat_output_list
     return conv_layer
 ```
 
@@ -1646,8 +1659,8 @@ $$
 代码：
 
 ```python
-def max_pool2d(input_mat, win_size, stride=1):
-    return apply_sliding_window(input_mat, win_size, win_size, stride, np.max)
+def max_pool2d(mat_input, win_size, stride=1):
+    return apply_sliding_window(mat_input, win_size, win_size, stride, np.max)
 ```
 
 
@@ -1659,12 +1672,12 @@ def max_pool2d(input_mat, win_size, stride=1):
 简单来说，扁平化的核心操作的是：将每一张特征图逐行逐列地展平为一个一维向量，再将所有通道对应的一维向量按顺序拼接整合，最终得到一个符合全连接网络输入规格的一维特征向量。我们可以将这一扁平化逻辑封装成一个函数，具体代码如下所示：
 
 ```python
-def flatten(input_mat_list):
-    flattened = []                # 创建一个空列表，用于存放所有元素
-    for mat in input_mat_list:    # 遍历每一个通道的特征图
-        for row in mat:           # 遍历矩阵中的每一行元素
-            flattened.extend(row) # 将一行元素全部加入列表
-    return flattened              # 返回展平后的一维数组
+def flatten(mat_input_list):
+    vec_flattened = []                # 创建一个空列表，用于存放所有元素
+    for mat in mat_input_list:        # 遍历每一个通道的特征图
+        for vec_row in mat:           # 遍历矩阵中的每一行元素
+            vec_flattened.extend(vec_row) # 将一行元素全部加入列表
+    return vec_flattened              # 返回展平后的一维数组
 ```
 
 以上一小节的 LeNet 风格示意图为例，我们可以看到，经过卷积层和池化层处理后，会得到 12 张 13×13 大小的特征图（即 12 个通道）。把这 12 张 13×13 的小特征图进行扁平化处理后，每张特征图可展平为 13×13=169 个数值，12 张特征图总共就是 12×169=2028 个数值，这些数值整合起来，就构成了扁平化后的一维特征向量。将这个一维特征向量作为输入，送入后续的全连接模块，就能得到最终的输出结果。
@@ -1893,12 +1906,12 @@ $$
 接下来，我们用一段 Python 代码来实现一个简单的玩具 RNN 层，帮助你加深对这些公式的理解：
 
 ```python
-def new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, af):
-  def rnn_layer(x):
-    nonlocal h  # 声明使用外部的h
-    h = af(w_xh @ x + w_hh @ h + b_h)
-    y = af(w_hy @ h + b_y)
-    return y
+def new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, af):
+  def rnn_layer(vec_x):
+    nonlocal vec_h  # 声明使用外部的隐藏状态
+    vec_h = af(mat_w_xh @ vec_x + mat_w_hh @ vec_h + vec_b_h)
+    vec_y = af(mat_w_hy @ vec_h + vec_b_y)
+    return vec_h, vec_y
   return rnn_layer
 ```
 
@@ -1963,16 +1976,16 @@ $$
 
 ```python
 _x, _h, _y = 3, 4, 2
-w_xh = np.random.rand(_h, _x) # 4×3
-w_hh = np.random.rand(_h, _h) # 4×4
-w_hy = np.random.rand(_y, _h) # 2x4
-b_h = np.random.rand(_h)      # 4×1
-b_y = np.random.rand(_y)      # 2×1
-h = np.zeros(_h)              # 4×1
-x = np.random.rand(_x)        # 3×1
-layer = new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, np.tanh)
-h2, y = layer(x)
-print(h2, y)
+mat_w_xh = np.random.rand(_h, _x) # 4×3
+mat_w_hh = np.random.rand(_h, _h) # 4×4
+mat_w_hy = np.random.rand(_y, _h) # 2x4
+vec_b_h = np.random.rand(_h)      # 4×1
+vec_b_y = np.random.rand(_y)      # 2×1
+vec_h = np.zeros(_h)              # 4×1
+vec_x = np.random.rand(_x)        # 3×1
+layer = new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, np.tanh)
+vec_h2, vec_y = layer(vec_x)
+print(vec_h2, vec_y)
 ```
 
 
@@ -2000,12 +2013,12 @@ print(h2, y)
 注意，我们在示例中暂时使用随机数来表示每一步的输入向量，并且写死循环次数为10。在后续小节中，我会详细介绍如何将一段真实文本转换成这样一系列的输入向量。示例代码如下所示：
 
 ```python
-layer = new_rnn_layer(w_xh, w_hh, w_hy, b_h, b_y, h, np.tanh)
+layer = new_rnn_layer(mat_w_xh, mat_w_hh, mat_w_hy, vec_b_h, vec_b_y, vec_h, np.tanh)
 
 for i in range(10):
-    x = np.random.rand(_x)
-    h, y = layer(x)
-    print(f't{i}: x={x.round(3)}, y={y.round(3)}, h={h.round(3)}')
+    vec_x = np.random.rand(_x)
+    vec_h, vec_y = layer(vec_x)
+    print(f't{i}: vec_x={vec_x.round(3)}, vec_y={vec_y.round(3)}, vec_h={vec_h.round(3)}')
 ```
 
 跑一下上面的代码，可以打印出类似下面这样的内容：
@@ -2039,12 +2052,12 @@ t9: x=[0.563 0.183 0.388], y=[0.989 0.983], h=[0.994 0.992 0.997 0.998]
 
 ```python
 def new_rnn(rnn_layers: list, fc_layer):
-    def rnn(x):
-        current = x                     # 保存输入，逐层向前传播
-        for rnn_layer in rnn_layers:    # 遍历每一个RNN层
-            _h, _y = rnn_layer(current) # 一层一层计算
-            current = _y                # 忽略隐藏状态
-        return fc_layer(current)        # 全连接层计算
+    def rnn(vec_x):
+        vec_current = vec_x                  # 保存输入，逐层向前传播
+        for rnn_layer in rnn_layers:         # 遍历每一个RNN层
+            vec_h, vec_y = rnn_layer(vec_current) # 一层一层计算
+            vec_current = vec_y              # 忽略隐藏状态
+        return fc_layer(vec_current)         # 全连接层计算
     return rnn
 ```
 
@@ -2114,11 +2127,11 @@ def char_one_hot(txt: str):
     vocab = sorted(set(txt))
 
     # 2. 生成 one-hot 矩阵
-    one_hot = np.eye(len(vocab), dtype=int)
+    mat_one_hot = np.eye(len(vocab), dtype=int)
 
     # 3. 打印每个 char 及其 one-hot vector
     for idx, ch in enumerate(vocab):
-        print(f"{repr(ch)}: {one_hot[idx].tolist()}")
+        print(f"{repr(ch)}: {mat_one_hot[idx].tolist()}")
 
 txt = "To be, or not to be, that is the question."
 char_one_hot(txt)
@@ -2235,10 +2248,13 @@ $$
 ```python
 from math import e
 
-def softmax(z: list[float], t: float) -> list[float]:
-    exp_values = [e ** (v/t) for v in z]
-    total = sum(exp_values)
-    return [v / total for v in exp_values]
+# 手写实现，用于逐步演示带温度的 Softmax 的计算过程。
+# NumPy 没有现成的 Softmax，但 np.exp 可以一次算完整个向量，
+# 于是整个函数可以简写成一行：np.exp(vec_z/t) / np.exp(vec_z/t).sum()
+def softmax(vec_z: np.ndarray, t: float) -> np.ndarray:
+    vec_exp = [e ** (v/t) for v in vec_z]
+    total = sum(vec_exp)
+    return np.array([v / total for v in vec_exp])
 ```
 
 从新的归一化公式可以看出：
@@ -2298,13 +2314,15 @@ $$
 ```python
 import random
 
-def sample_by_prob(probs: list[float]) -> int:
+# 手写实现，用于逐步演示按概率采样的过程。
+# NumPy 有现成实现：np.random.choice(len(vec_probs), p=vec_probs)
+def sample_by_prob(vec_probs: np.ndarray) -> int:
     # 生成 0~1 之间的随机数
     rand = random.random()
     
     # 累计概率，判断落在哪个区间
     cumulative = 0.0
-    for idx, prob in enumerate(probs):
+    for idx, prob in enumerate(vec_probs):
         cumulative += prob
         if rand < cumulative:
             return idx
@@ -2454,12 +2472,12 @@ def word_one_hot(txt: str):
     vocab = sorted(set(tokenize(txt)))
 
     # 2. 生成 one-hot 矩阵
-    one_hot = np.eye(len(vocab), dtype=int)
+    mat_one_hot = np.eye(len(vocab), dtype=int)
 
     # 3. 打印每个 token 及其 one-hot vector
     max_len = max(len(repr(token)) for token in vocab)
     for idx, token in enumerate(vocab):
-        print(f"{repr(token):<{max_len}}: {one_hot[idx].tolist()}")
+        print(f"{repr(token):<{max_len}}: {mat_one_hot[idx].tolist()}")
 
 txt = "To be, or not to be, that is the question."
 word_one_hot(txt)
@@ -2549,13 +2567,13 @@ $$
 这种表示方式的好处在于：屏蔽了复杂的数学细节、突出了信息流动的路径，为后续理解 LSTM / GRU 打下基础。理解了这一抽象之后，我们会发现：所谓“门”，在实现上其实非常简单。本质上，它仍然是一个带有输入和隐藏状态的线性变换加激活函数。因此，我们完全可以用几行 Python 代码来实现一个“门”的创建与计算过程。为了便于对比，我们也把之前全连接层的实现一起列出。通过对比你会发现：Gate 和全连接层的区别，仅仅在于“是否引入了隐藏状态”这一额外输入。下面是对应的完整代码实现：
 
 ```python
-# x => y
-def new_fc_layer(w, b, af):
-    return lambda x: af(w @ x + b)
+# vec_x => vec_y
+def new_fc_layer(mat_w, vec_b, af):
+    return lambda vec_x: af(mat_w @ vec_x + vec_b)
 
-# x, h => h'
-def new_gate(w_xh, w_hh, b_h, af):
-    return lambda x, h: af(w_xh @ x + w_hh @ h + b_h)
+# vec_x, vec_h => vec_h'
+def new_gate(mat_w_xh, mat_w_hh, vec_b_h, af):
+    return lambda vec_x, vec_h: af(mat_w_xh @ vec_x + mat_w_hh @ vec_h + vec_b_h)
 ```
 
 
@@ -2656,15 +2674,15 @@ def new_lstm_layer(forget_gate,
                    output_gate, 
                    candidate_gate,
                    fc_layer):
-    def layer(x, h, c):
-        _f = forget_gate(x, h)
-        _i = input_gate(x, h)
-        _o = output_gate(x, h)
-        _c = candidate_gate(x, h)
-        new_c = _f * c + _i * _c
-        new_t = _o * tanh(new_c)
-        y = fc_layer(new_t)
-        return y
+    def layer(vec_x, vec_h, vec_c):
+        vec_f = forget_gate(vec_x, vec_h)
+        vec_i = input_gate(vec_x, vec_h)
+        vec_o = output_gate(vec_x, vec_h)
+        vec_c_hat = candidate_gate(vec_x, vec_h)
+        vec_c_new = vec_f * vec_c + vec_i * vec_c_hat
+        vec_h_new = vec_o * tanh(vec_c_new)
+        vec_y = fc_layer(vec_h_new)
+        return vec_y
     return layer
 ```
 
@@ -2694,13 +2712,13 @@ $$
 
 ```python
 def new_gru_layer(update_gate, reset_gate, tanh_gate):
-    def layer(x, h):
-        _z = update_gate(x, h)
-        _r = reset_gate(x, h)
-        _h = tanh_gate(x, _r * h)
-        new_h = (1 - _z) * h + _z * _h
-        y = fc_layer(new_t)
-        return y
+    def layer(vec_x, vec_h):
+        vec_z = update_gate(vec_x, vec_h)
+        vec_r = reset_gate(vec_x, vec_h)
+        vec_h_hat = tanh_gate(vec_x, vec_r * vec_h)
+        vec_h_new = (1 - vec_z) * vec_h + vec_z * vec_h_hat
+        vec_y = fc_layer(vec_h_new)
+        return vec_y
     return layer
 ```
 
@@ -2887,11 +2905,11 @@ $$
 Python代码：
 
 ```python
-def calc_qkv(w_q, w_k, w_v, x):
-    q = x @ w_q
-    k = x @ w_k
-    v = x @ w_v
-    return q, k, v
+def calc_qkv(mat_w_q, mat_w_k, mat_w_v, mat_x):
+    mat_q = mat_x @ mat_w_q
+    mat_k = mat_x @ mat_w_k
+    mat_v = mat_x @ mat_w_v
+    return mat_q, mat_k, mat_v
 ```
 
 
@@ -2920,9 +2938,9 @@ $$
 Python代码：
 
 ```python
-def calc_score(q, k, v, sqrt_d_k):
-    score = q @ k.T / sqrt_d_k
-    return softmax(score)
+def calc_score(mat_q, mat_k, mat_v, sqrt_d_k):
+    mat_score = mat_q @ mat_k.T / sqrt_d_k
+    return softmax(mat_score)
 ```
 
 
@@ -2946,10 +2964,10 @@ $$
 代码：
 
 ```python
-def calc_self_attention(w_q, w_k, w_v, sqrt_d_k, x):
-    q, k, v = calc_qkv(w_q, w_k, w_v, x)
-    score = calc_score(q, k, v, sqrt_d_k)
-    return score @ v
+def calc_self_attention(mat_w_q, mat_w_k, mat_w_v, sqrt_d_k, mat_x):
+    mat_q, mat_k, mat_v = calc_qkv(mat_w_q, mat_w_k, mat_w_v, mat_x)
+    mat_score = calc_score(mat_q, mat_k, mat_v, sqrt_d_k)
+    return mat_score @ mat_v
 ```
 
 
@@ -2965,11 +2983,11 @@ def calc_self_attention(w_q, w_k, w_v, sqrt_d_k, x):
 玩具代码：
 
 ```python
-def new_multi_head(heads, w_o):
-    def multi_head(x):
-        z_list = [head(x) for head in heads]
-        z = np.concatenate(z_list, axis=1)
-        return z @ w_o
+def new_multi_head(heads, mat_w_o):
+    def multi_head(mat_x):
+        mat_z_list = [head(mat_x) for head in heads]
+        mat_z = np.concatenate(mat_z_list, axis=1)
+        return mat_z @ mat_w_o
     return multi_head
 ```
 

@@ -5,11 +5,11 @@ def char_one_hot(txt: str):
     vocab = sorted(set(txt))
 
     # 2. 生成 one-hot 矩阵
-    one_hot = np.eye(len(vocab), dtype=int)
+    mat_one_hot = np.eye(len(vocab), dtype=int)
 
     # 3. 打印每个 char 及其 one-hot vector
     for idx, ch in enumerate(vocab):
-        print(f"{repr(ch)}: {one_hot[idx].tolist()}")
+        print(f"{repr(ch)}: {mat_one_hot[idx].tolist()}")
 
 
 txt = "To be, or not to be, that is the question."

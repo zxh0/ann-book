@@ -55,13 +55,15 @@ $$
 如果你对公式感到头疼，我们也完全可以用 Python 代码来表达这一计算过程，理解起来会更直观。它本质上只是一个两层循环：
 
 ```python
-def weighted_sum(x: list[list[float]], 
-                 w: list[list[float]], 
+# 手写实现，用于逐步演示加权求和的计算过程。
+# NumPy 有现成实现：np.sum(mat_x * mat_w)
+def weighted_sum(mat_x: np.ndarray,
+                 mat_w: np.ndarray,
                  k: int) -> float:
     total = 0.0
     for i in range(k):
         for j in range(k):
-            total += w[i][j] * x[i][j]
+            total += mat_x[i][j] * mat_w[i][j]
     return total
 ```
 
@@ -102,11 +104,11 @@ $$
 如果我们把前一小节介绍的卷积核加权求和过程抽象出来，将其视为一个作用于滑动窗口的独立函数，那么滑动窗口的主体逻辑就可以只关注窗口的移动规则，而不必关心内部具体如何计算。对应的 Python 实现如下：
 
 ```python
-def apply_sliding_window(input_mat, k_h, k_w, stride, func):
-    h, w = input_mat.shape                # 获取输入矩阵的高、宽
-    out_h = (h - k_h) // stride + 1       # 计算输出矩阵的高、宽
-    out_w = (w - k_w) // stride + 1       #
-    output_mat = np.zeros((out_h, out_w)) # 初始化输出矩阵
+def apply_sliding_window(mat_input, k_h, k_w, stride, func):
+    h, w = mat_input.shape                   # 获取输入矩阵的高、宽
+    out_h = (h - k_h) // stride + 1          # 计算输出矩阵的高、宽
+    out_w = (w - k_w) // stride + 1          #
+    mat_output = np.zeros((out_h, out_w))    # 初始化输出矩阵
 
     # 开始滑动窗口
     for i in range(out_h):
@@ -114,12 +116,12 @@ def apply_sliding_window(input_mat, k_h, k_w, stride, func):
             # 截取当前窗口
             start_i = i * stride
             start_j = j * stride
-            window = input_mat[start_i:start_i + k_h, start_j:start_j + k_w]
+            mat_window = mat_input[start_i:start_i + k_h, start_j:start_j + k_w]
 
             # 进行计算
-            output_mat[i, j] = func(window)
+            mat_output[i, j] = func(mat_window)
 
-    return output_mat
+    return mat_output
 ```
 
 需要注意的是，该函数包含一个 `stride` 参数。这里我们先假设其值为 1，即暂时不产生实际效果，关于它的具体作用，我们会在后续小节详细介绍。此外，函数内部也已经考虑了窗口为矩形的通用情况。
@@ -143,15 +145,15 @@ def apply_sliding_window(input_mat, k_h, k_w, stride, func):
 虽然手动实现填充逻辑并不复杂，但 NumPy 已经内置了 `pad` 方法，我们直接使用即可，既简洁又可靠。下面就是基于它实现的零填充函数：
 
 ```python
-def zero_pad(input_mat, padding):
+def zero_pad(mat_input, padding):
     if padding > 0:
         return np.pad(
-            input_mat,
+            mat_input,
             pad_width=((padding, padding), (padding, padding)),
             mode='constant',
             constant_values=0
         )
-    return input_mat
+    return mat_input
 ```
 
 
@@ -189,12 +191,12 @@ $$
 现在，我们使用 Python 代码完整实现卷积运算。这个函数能够灵活处理输入矩阵与卷积核不是正方形的情况。需要注意的是，我们直接通过 NumPy 的**逐元素相乘**（也叫哈达玛积，用星号表示）与内置的 `sum` 函数完成加权求和计算，没有使用之前我们自己定义的加权求和函数。完整的实现代码如下所示（TODO：补上激活函数）：
 
 ```python
-def conv2d(input_mat, kernel_mat, bias, padding=0, stride=1):
-    conv_func = lambda window: np.sum(window * kernel_mat) + bias # 卷积核计算
-    k_h, k_w = kernel_mat.shape # 获取输入卷积核的高、宽
-    input_mat = zero_pad(input_mat, padding) # 填充
-    output_mat = apply_sliding_window(input_mat, k_h, k_w, stride, conv_func)
-    return output_mat
+def conv2d(mat_input, mat_kernel, bias, padding=0, stride=1):
+    conv_func = lambda mat_window: np.sum(mat_window * mat_kernel) + bias # 卷积核计算
+    k_h, k_w = mat_kernel.shape # 获取输入卷积核的高、宽
+    mat_input = zero_pad(mat_input, padding) # 填充
+    mat_output = apply_sliding_window(mat_input, k_h, k_w, stride, conv_func)
+    return mat_output
 ```
 
 读到这里，相信你已经对卷积运算有了清晰的认识。就算暂时没完全弄懂也没关系，毕竟书里的图都是静态的，确实不太好直观理解。我帮你找到了一个很好用的在[线小工具](https://poloclub.github.io/cnn-explainer/)，你可以随意调整输入大小、填充圈数、卷积核大小和步幅，既能自动播放整个滑动窗口的过程，也能手动选中区域，看清输入和输出之间的对应关系。强烈建议你动手试一试，效果非常直观。下面是它的界面截图：
@@ -225,12 +227,12 @@ def conv2d(input_mat, kernel_mat, bias, padding=0, stride=1):
 
 ```python
 def new_conv_layer(kernel_list, padding=0, stride=1):
-    def conv_layer(input_mat):
-        output_mat_list = []
-        for kernel_mat, bias in kernel_list:
-            output_mat = conv2d(input_mat, kernel_mat, bias, padding, stride)
-            output_mat_list.append(output_mat)
-        return output_mat_list
+    def conv_layer(mat_input):
+        mat_output_list = []
+        for mat_kernel, bias in kernel_list:
+            mat_output = conv2d(mat_input, mat_kernel, bias, padding, stride)
+            mat_output_list.append(mat_output)
+        return mat_output_list
     return conv_layer
 ```
 
@@ -308,26 +310,26 @@ $$
 
 ```python
 def new_conv_layer2(kernel_list, padding=0, stride=1):
-    def conv_layer(input_mat_list):
-        output_mat_list = []
+    def conv_layer(mat_input_list):
+        mat_output_list = []
         
-        # 遍历每一个多通道卷积核 (kernel_mat_list, bias)
-        for kernel_mat_list, bias in kernel_list:
-            output_mat_list_tmp = []
+        # 遍历每一个多通道卷积核 (mat_kernel_list, bias)
+        for mat_kernel_list, bias in kernel_list:
+            mat_output_list_tmp = []
             
             # 遍历每个输入通道（对应每个卷积核通道）
-            for i in range(len(input_mat_list)):
-                input_mat = input_mat_list[i]
-                kernel_mat = kernel_mat_list[i]
-                output_mat = conv2d(input_mat, kernel_mat, 0, padding, stride)
-                output_mat_list_tmp.append(output_mat)
+            for i in range(len(mat_input_list)):
+                mat_input = mat_input_list[i]
+                mat_kernel = mat_kernel_list[i]
+                mat_output = conv2d(mat_input, mat_kernel, 0, padding, stride)
+                mat_output_list_tmp.append(mat_output)
             
             # 所有通道结果逐元素相加 → 再加偏置
-            fused_mat = np.sum(output_mat_list_tmp, axis=0)
-            output_mat = fused_mat + bias
-            output_mat_list.append(output_mat)
+            mat_fused = np.sum(mat_output_list_tmp, axis=0)
+            mat_output = mat_fused + bias
+            mat_output_list.append(mat_output)
         
-        return output_mat_list
+        return mat_output_list
     return conv_layer
 ```
 
@@ -364,8 +366,8 @@ $$
 代码：
 
 ```python
-def max_pool2d(input_mat, win_size, stride=1):
-    return apply_sliding_window(input_mat, win_size, win_size, stride, np.max)
+def max_pool2d(mat_input, win_size, stride=1):
+    return apply_sliding_window(mat_input, win_size, win_size, stride, np.max)
 ```
 
 
@@ -377,12 +379,12 @@ def max_pool2d(input_mat, win_size, stride=1):
 简单来说，扁平化的核心操作的是：将每一张特征图逐行逐列地展平为一个一维向量，再将所有通道对应的一维向量按顺序拼接整合，最终得到一个符合全连接网络输入规格的一维特征向量。我们可以将这一扁平化逻辑封装成一个函数，具体代码如下所示：
 
 ```python
-def flatten(input_mat_list):
-    flattened = []                # 创建一个空列表，用于存放所有元素
-    for mat in input_mat_list:    # 遍历每一个通道的特征图
-        for row in mat:           # 遍历矩阵中的每一行元素
-            flattened.extend(row) # 将一行元素全部加入列表
-    return flattened              # 返回展平后的一维数组
+def flatten(mat_input_list):
+    vec_flattened = []                # 创建一个空列表，用于存放所有元素
+    for mat in mat_input_list:        # 遍历每一个通道的特征图
+        for vec_row in mat:           # 遍历矩阵中的每一行元素
+            vec_flattened.extend(vec_row) # 将一行元素全部加入列表
+    return vec_flattened              # 返回展平后的一维数组
 ```
 
 以上一小节的 LeNet 风格示意图为例，我们可以看到，经过卷积层和池化层处理后，会得到 12 张 13×13 大小的特征图（即 12 个通道）。把这 12 张 13×13 的小特征图进行扁平化处理后，每张特征图可展平为 13×13=169 个数值，12 张特征图总共就是 12×169=2028 个数值，这些数值整合起来，就构成了扁平化后的一维特征向量。将这个一维特征向量作为输入，送入后续的全连接模块，就能得到最终的输出结果。
