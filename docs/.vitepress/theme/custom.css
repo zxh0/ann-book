@@ -79,7 +79,7 @@
   font-weight: 500;
 }
 
-/* 本书的目录（还没有正文可以链，先列出来） */
+/* 本书的目录：已发布的章节能点开，还没写完的先灰着列出来 */
 .book-toc {
   margin: 1.25rem 0 0;
   padding: 0;
@@ -89,5 +89,13 @@
 .book-toc li {
   padding: 0.5rem 0 0.5rem 1rem;
   border-left: 2px solid var(--vp-c-divider);
-  color: var(--vp-c-text-2);
+  color: var(--vp-c-text-3);
+}
+
+.book-toc li.published {
+  border-left-color: var(--vp-c-brand-1);
+}
+
+.book-toc a {
+  font-weight: 500;
 }

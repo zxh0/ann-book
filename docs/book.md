@@ -1,15 +1,16 @@
 # 人人能懂的人工神经网络
 
 <script setup>
+import { withBase } from 'vitepress'
 import { bookToc } from './.vitepress/sidebar.json'
 </script>
 
 > ANN for the Rest of Us
 
 ::: warning 施工中（WIP）
-本书还在很早期的草稿阶段，可能有很多逻辑混乱、甚至胡言乱语的地方，我会慢慢改进。所以暂时还没在这个站点上发布，想提前看的话可以直接读仓库里的
+本书还在草稿阶段，改得差不多的章节会陆续放到这个站点上，目录里能点开的就是已经发布的。还没发布的章节可以直接读仓库里的
 [Book.md](https://github.com/zxh0/ann-book/blob/main/book/Book.md)（全书单文件），或者按章节读
-[book/chapters/](https://github.com/zxh0/ann-book/tree/main/book/chapters)。
+[book/chapters/](https://github.com/zxh0/ann-book/tree/main/book/chapters)，不过那些内容更早期，可能有很多逻辑混乱、甚至胡言乱语的地方。
 :::
 
 ![人人能懂的人工神经网络](/ann.jpg)
@@ -26,8 +27,11 @@ import { bookToc } from './.vitepress/sidebar.json'
 
 ## 目录
 
-章节标题已经定下来了，正文还在填坑：
+章节标题已经定下来了，正文还在填坑。已经发布的章节可以点开读：
 
 <ul class="book-toc">
-  <li v-for="t in bookToc" :key="t">{{ t }}</li>
+  <li v-for="t in bookToc" :key="t.text" :class="{ published: t.link }">
+    <a v-if="t.link" :href="withBase(t.link)">{{ t.text }}</a>
+    <template v-else>{{ t.text }}</template>
+  </li>
 </ul>
