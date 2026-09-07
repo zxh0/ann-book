@@ -25,7 +25,7 @@
 在这种表示中：输入 $\mathbf{x}$ 、输出 $\mathbf{y}$ 、偏置 $\mathbf{b}$ 都表示为**列向量**，用粗体小写字母；权重 $W$ 表示为一个**矩阵**，用大写字母，其每一行对应一个神经元的权重参数。这样不仅可以清晰表达结构，还能自然引出其计算过程。全连接层的前向传播可以统一表示为：
 
 $$
-\mathbf{y} = f(\mathbf{x}) = σ(W\mathbf{x} + \mathbf{b})
+\mathbf{y} = f(\mathbf{x}) = \sigma(W\mathbf{x} + \mathbf{b})
 $$
 
 其中， $W\mathbf{x} + \mathbf{b}$ 表示线性变换， $\sigma$ 表示逐元素应用的激活函数（如 ReLU、Sigmoid 等）。这个公式完整刻画了全连接层的前向计算过程。如果你对这些内容还不够熟悉，可以回顾本书第二章和第三章的相关内容，再继续阅读本章后续部分。
@@ -43,8 +43,8 @@ $$
 简而言之，RNN 层的计算可以分为两个阶段来理解。首先，根据当前输入和旧的隐藏状态，计算新的隐藏状态。然后，基于更新后的隐藏状态，计算当前时刻的输出。我们用 $\mathbf{h}$ 和 $\mathbf{h}'$ 来表示前后隐藏状态，用带有下标的 $W$ 和 $\mathbf{b}$ 来表示权重矩阵和偏置向量，那RNN层对应的计算公式如下（这些下标的含义我马上会介绍）：
 
 $$
-\mathbf{h}' = σ(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h) \\
-\mathbf{y} = σ(W_{hy}\mathbf{h}' + \mathbf{b}_y)
+\mathbf{h}' = \sigma(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h) \\
+\mathbf{y} = \sigma(W_{hy}\mathbf{h}' + \mathbf{b}_y)
 $$
 
 相比全连接层，这个公式看起来确实更复杂一些。不过不用担心，如果你已经理解了全连接层，其实可以把 RNN 看作是“两个全连接层的组合 + 一个状态连接”。
@@ -397,7 +397,7 @@ $$
 P_i = \frac{e^{z_i/t}}{\sum_{j=1}^{n}e^{z_j/t}}
 $$
 
-我们把第三章写的Softmax函数稍加修改，加上温度值参数`t`，就变成了带温度的归一化函数，修改后的代码如下所示：
+我们把第三章写的Softmax函数稍加修改，加上温度值参数 $t$ ，就变成了带温度的归一化函数，修改后的代码如下所示：
 
 ```python
 from math import e
@@ -525,7 +525,7 @@ My
 
 **RNN 的计算方式。** RNN 层的前向计算分为两个阶段：首先，结合当前输入与旧的隐藏状态，计算新的隐藏状态；然后，基于新的隐藏状态，输出当前时刻的结果。对应的公式为：
 
-$$\mathbf{h}' = σ(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h)，\quad \mathbf{y} = σ(W_{hy}\mathbf{h}' + \mathbf{b}_y)$$
+$$\mathbf{h}' = \sigma(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h)，\quad \mathbf{y} = \sigma(W_{hy}\mathbf{h}' + \mathbf{b}_y)$$
 
 其中包含三个权重矩阵（ $W_{xh}$ 、 $W_{hh}$ 、 $W_{hy}$ ）和两个偏置，而隐藏状态 $\mathbf{h}$ 本身不是可学习参数，只是随序列推进动态更新的中间变量。
 
