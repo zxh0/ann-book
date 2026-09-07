@@ -18,11 +18,11 @@
 
 ### Gate概念
 
-在正式介绍 LSTM 和 GRU 之前，我们先来简要回顾一下前一章中学习的 RNN 层计算逻辑。这一步非常重要，因为我们将从中抽象出一个核心概念——**门**（Gate）。如果你对 RNN 的计算过程还不够熟悉，建议先回到第五章再复习一遍，再继续阅读本节内容。先回顾一下 RNN 层的基本计算公式：
+在正式介绍 LSTM 和 GRU 之前，我们先来简要回顾一下前一章中学习的 RNN 层计算逻辑。这一步非常重要，因为我们将从中抽象出一个核心概念：**门**（Gate）。如果你对 RNN 的计算过程还不够熟悉，建议先回到第五章再复习一遍，再继续阅读本节内容。先回顾一下 RNN 层的基本计算公式：
 
 $$
-\mathbf{h}' = σ(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h) \\
-\mathbf{y} = σ(W_{hy}\mathbf{h}' + \mathbf{b}_y)
+\mathbf{h}' = \sigma(W_{xh}\mathbf{x} + W_{hh}\mathbf{h} + \mathbf{b}_h) \\
+\mathbf{y} = \sigma(W_{hy}\mathbf{h}' + \mathbf{b}_y)
 $$
 
 我们可以用一种更直观的方式来理解这两行公式：
@@ -72,9 +72,9 @@ def new_gate(mat_w_xh, mat_w_hh, vec_b_h, af):
 
 $$
 \begin{aligned}
-\mathbf{f} &= σ(W_{fx}\mathbf{x} + W_{fh}\mathbf{h} + \mathbf{b}_f) \\
-\mathbf{i} &= σ(W_{ix}\mathbf{x} + W_{ih}\mathbf{h} + \mathbf{b}_i) \\
-\mathbf{o} &= σ(W_{ox}\mathbf{x} + W_{oh}\mathbf{h} + \mathbf{b}_o) \\
+\mathbf{f} &= \sigma(W_{fx}\mathbf{x} + W_{fh}\mathbf{h} + \mathbf{b}_f) \\
+\mathbf{i} &= \sigma(W_{ix}\mathbf{x} + W_{ih}\mathbf{h} + \mathbf{b}_i) \\
+\mathbf{o} &= \sigma(W_{ox}\mathbf{x} + W_{oh}\mathbf{h} + \mathbf{b}_o) \\
 \hat{\mathbf{c}} &= \mathrm{tanh}(W_{cx}\mathbf{x} + W_{ch}\mathbf{h} + \mathbf{b}_c) \\
 \mathbf{c}' &= \mathbf{f} * \mathbf{c} + \mathbf{i} * \hat{\mathbf{c}} \\
 \mathbf{h}' &= \mathbf{o} * \mathrm{tanh}(\mathbf{c}) \\
@@ -97,7 +97,7 @@ $$
 
 $$
 \begin{aligned}
-\mathbf{f} &= σ(W_{fx}\mathbf{x} + W_{fh}\mathbf{h} + \mathbf{b}_f) \\
+\mathbf{f} &= \sigma(W_{fx}\mathbf{x} + W_{fh}\mathbf{h} + \mathbf{b}_f) \\
 \mathbf{c}' &= \mathbf{f} * \mathbf{c} + ... \\
 \end{aligned}
 $$
@@ -112,7 +112,7 @@ $$
 
 $$
 \begin{aligned}
-\mathbf{i} &= σ(W_{ix}\mathbf{x} + W_{ih}\mathbf{h} + \mathbf{b}_i) \\
+\mathbf{i} &= \sigma(W_{ix}\mathbf{x} + W_{ih}\mathbf{h} + \mathbf{b}_i) \\
 \hat{\mathbf{c}} &= \mathrm{tanh}(W_{cx}\mathbf{x} + W_{ch}\mathbf{h} + \mathbf{b}_c) \\
 \mathbf{c}' &= ... + \mathbf{i} * \hat{\mathbf{c}} \\
 \end{aligned}
@@ -134,7 +134,7 @@ $$
 
 $$
 \begin{aligned}
-\mathbf{o} &= σ(W_{ox}\mathbf{x} + W_{oh}\mathbf{h} + \mathbf{b}_o) \\
+\mathbf{o} &= \sigma(W_{ox}\mathbf{x} + W_{oh}\mathbf{h} + \mathbf{b}_o) \\
 \mathbf{h}' &= \mathbf{o} * \mathrm{tanh}(\mathbf{c}) \\
 \mathbf{y} &= W_{hy}\mathbf{h}' + \mathbf{b}_y
 \end{aligned}
@@ -178,8 +178,8 @@ GRU的主要简化：去掉细胞状态，重新回到单个隐藏状态 $\mathb
 
 $$
 \begin{aligned}
-\mathbf{z} &= σ(W_{zx}\mathbf{x} + W_{zh}\mathbf{h} + \mathbf{b}_z) \\
-\mathbf{r} &= σ(W_{rx}\mathbf{x} + W_{rh}\mathbf{h} + \mathbf{b}_r) \\
+\mathbf{z} &= \sigma(W_{zx}\mathbf{x} + W_{zh}\mathbf{h} + \mathbf{b}_z) \\
+\mathbf{r} &= \sigma(W_{rx}\mathbf{x} + W_{rh}\mathbf{h} + \mathbf{b}_r) \\
 \hat{\mathbf{h}} &= \mathrm{tanh}(W_{hx}\mathbf{x} + W_{hh}(\mathbf{r} * \mathbf{h}) + \mathbf{b}_t) \\
 \mathbf{h}' &= (1 - \mathbf{z})*\mathbf{h} + \mathbf{z} * \hat{\mathbf{h}} \\
 \mathbf{y} &= W_{hy}\mathbf{h}' + \mathbf{b}_y

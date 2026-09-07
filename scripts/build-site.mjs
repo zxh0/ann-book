@@ -15,7 +15,7 @@ const publicDir = path.join(docsDir, 'public')
 
 // 已经上站的章节（chapters/ 下的文件名）。写完一章往这里加一行即可，
 // 没列进来的章节只在 /book 的目录里露个标题，正文继续待在仓库里。
-const PUBLISHED = new Set(['02_ch00_basics.md'])
+const PUBLISHED = new Set(['02_ch00_basics.md', '03_ch01_neuron.md'])
 
 // 笔记文件名约定：YYYY-MM-DD-Slug.md
 const NOTE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/
