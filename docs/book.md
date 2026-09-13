@@ -2,7 +2,8 @@
 
 <script setup>
 import { withBase } from 'vitepress'
-import { bookToc } from './.vitepress/sidebar.json'
+import { books } from './.vitepress/sidebar.json'
+const bookToc = books.ann.toc
 </script>
 
 > ANN for the Rest of Us
