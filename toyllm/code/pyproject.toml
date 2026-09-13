@@ -1,0 +1,30 @@
+[project]
+name = "toy-llm-engine"
+version = "0.1.0"
+description = "A toy LLM inference engine written from scratch in PyTorch, built up step by step until it can load and run SmolLM2"
+readme = "README.md"
+requires-python = ">=3.12"
+# Runtime deps are deliberately minimal: tensor math, the checkpoint file format,
+# and Unicode property classes. Nothing that implements the model or the tokenizer.
+dependencies = [
+    "numpy<2",
+    "regex>=2026.9.3",
+    "safetensors>=0.8.0",
+    "torch<2.3",
+]
+
+# Oracles and test tooling only. `tokenizers` and `transformers` exist purely so
+# tests can diff our implementation against the reference — never imported from
+# `toyllm/`. transformers must stay on the 4.x line: 5.x requires torch>=2.5,
+# which has no macOS x86_64 wheels (see CLAUDE.md).
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "tokenizers",
+    "transformers<5",
+]
+
+[tool.pytest.ini_options]
+# Not an installed package — put `poc/` on sys.path so `import toyllm` works.
+pythonpath = ["poc"]
+testpaths = ["poc/tests"]
