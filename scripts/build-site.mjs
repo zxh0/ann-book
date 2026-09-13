@@ -1,12 +1,13 @@
-// 从 notes/、book/ 和 toyllm/ 生成 VitePress 站点内容。
-// notes/*.md、book/chapters/*.md 和 toyllm/chapters/*.md 是唯一的内容来源，
-// docs/notes/、docs/book/、docs/toyllm/、docs/public/、sidebar.json 都是生成物。
+// 从 notes/ 和 books/ 生成 VitePress 站点内容。
+// notes/*.md 和 books/*/chapters/*.md 是唯一的内容来源，
+// docs/notes/、docs/ann4us/、docs/toyllm/、docs/public/、sidebar.json 都是生成物。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const notesDir = path.join(root, 'notes')
+const booksDir = path.join(root, 'books')
 const docsDir = path.join(root, 'docs')
 const outDir = path.join(docsDir, 'notes')
 const publicDir = path.join(docsDir, 'public')
@@ -16,30 +17,30 @@ const publicDir = path.join(docsDir, 'public')
 const BOOKS = [
   {
     // 《人人能懂的人工神经网络》：分章文件名是 NN_slug.md，章标题写成 ##，
-    // 插图在 book/images/ 下，正文里引作 ../images/xxx
+    // 插图在 books/ann4us/images/ 下，正文里引作 ../images/xxx
     key: 'ann',
-    srcDir: path.join(root, 'book', 'chapters'),
-    route: 'book', // 站点地址前缀，同时也是 docs/ 下的目录名
+    dir: 'ann4us', // books/ 下的目录名
+    route: 'ann4us', // 站点地址前缀，同时也是 docs/ 下的目录名
     chapterRe: /^\d+_(.+)\.md$/,
     skipTitle: '人人能懂的人工神经网络', // 书名页不算章节
     promote: true, // 章标题 ## 提到 #，正文各级标题跟着上移一级
-    imagesDir: path.join(root, 'book', 'images'),
-    cover: { src: path.join(root, 'book', 'images', 'ann.jpg'), name: 'ann.jpg' },
+    cover: { from: path.join('images', 'ann.jpg'), name: 'ann.jpg' },
     published: new Set(['02_ch00_basics.md', '03_ch01_neuron.md']),
   },
   {
     // 《自己动手写LLM推理引擎》：分章文件名是 chNN_slug.md，章标题本来就是 #，
     // _front.md / _preface.md / todo.md 不匹配 chapterRe，自然被挡在外面
     key: 'toyllm',
-    srcDir: path.join(root, 'toyllm', 'chapters'),
+    dir: 'toyllm',
     route: 'toyllm',
     chapterRe: /^(ch\d+_.+)\.md$/,
     promote: false,
-    imagesDir: path.join(root, 'toyllm', 'images'),
-    cover: { src: path.join(root, 'toyllm', 'aigc', 'front.png'), name: 'toyllm.png' },
+    cover: { from: path.join('aigc', 'front.png'), name: 'toyllm.png' },
     published: new Set(['ch01_overview.md']),
   },
 ]
+
+const chaptersDirOf = (book) => path.join(booksDir, book.dir, 'chapters')
 
 // 笔记文件名约定：YYYY-MM-DD-Slug.md
 const NOTE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/
@@ -159,7 +160,7 @@ const sidebar = notes.map(({ date, title, link, collapsed, items }) => ({
 
 // 书按章上站：published 里的章节生成页面，其余的只在目录页里列个标题。
 // 页面文件保留 chapters/ 的原始文件名，再用 VitePress 的 rewrites 映射到干净的
-// 地址（/book/ch00-basics、/toyllm/ch01-overview），这样 editLink 拿到的 filePath
+// 地址（/ann4us/ch00-basics、/toyllm/ch01-overview），这样 editLink 拿到的 filePath
 // 还能直接对回各自 chapters/ 下的源文件。
 const rewrites = {}
 
@@ -170,10 +171,10 @@ function buildBook(book) {
 
   const chapters = []
 
-  for (const name of fs.readdirSync(book.srcDir).sort()) {
+  for (const name of fs.readdirSync(chaptersDirOf(book)).sort()) {
     if (!book.chapterRe.test(name)) continue
 
-    const raw = fs.readFileSync(path.join(book.srcDir, name), 'utf8')
+    const raw = fs.readFileSync(path.join(chaptersDirOf(book), name), 'utf8')
     const title = firstHeadingOf(raw)
     if (!title || title === book.skipTitle) continue
 
@@ -198,7 +199,7 @@ function buildBook(book) {
     })
   }
 
-  if (chapters.length === 0) throw new Error(`${book.srcDir} 下没有找到分章文件`)
+  if (chapters.length === 0) throw new Error(`${chaptersDirOf(book)} 下没有找到分章文件`)
 
   return {
     // 目录页要列全部章节，侧边栏只放已经上站的
@@ -233,8 +234,8 @@ fs.mkdirSync(publicDir, { recursive: true })
 copyDir(path.join(notesDir, 'images'), path.join(publicDir, 'images'))
 // 每本书的插图各占 images/ 下的一个子目录，跟笔记的插图分开，免得几边目录重名
 for (const book of BOOKS) {
-  copyDir(book.imagesDir, path.join(publicDir, 'images', book.route))
-  fs.copyFileSync(book.cover.src, path.join(publicDir, book.cover.name))
+  copyDir(path.join(booksDir, book.dir, 'images'), path.join(publicDir, 'images', book.route))
+  fs.copyFileSync(path.join(booksDir, book.dir, book.cover.from), path.join(publicDir, book.cover.name))
 }
 
 console.log(

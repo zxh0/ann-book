@@ -13,7 +13,7 @@ const part2 = toc.slice(10)
 
 ::: warning 施工中（WIP）
 书名待定，正文还在很早期的草稿阶段。写得差不多的章节会陆续放到这个站点上，目录里能点开的就是已经发布的。还没发布的章节可以直接读仓库里的
-[toyllm/chapters/](https://github.com/zxh0/ann-book/tree/main/toyllm/chapters)，不过那些内容更早期，可能有很多逻辑混乱、甚至胡言乱语的地方。
+[books/toyllm/chapters/](https://github.com/zxh0/ann-book/tree/main/books/toyllm/chapters)，不过那些内容更早期，可能有很多逻辑混乱、甚至胡言乱语的地方。
 :::
 
 ![自己动手写LLM推理引擎](/toyllm.png)
@@ -56,4 +56,4 @@ const part2 = toc.slice(10)
 
 ## 随书代码
 
-随书代码在仓库的 [toyllm/code/](https://github.com/zxh0/ann-book/tree/main/toyllm/code) 下，一章一个目录。另外 `code/poc/` 里是最早的概念验证，已经跑通全流程并有一批测试，作为正确性参照保留。
+随书代码在仓库的 [books/toyllm/code/](https://github.com/zxh0/ann-book/tree/main/books/toyllm/code) 下，一章一个目录。另外 `code/poc/` 里是最早的概念验证，已经跑通全流程并有一批测试，作为正确性参照保留。

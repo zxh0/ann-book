@@ -4,7 +4,7 @@
 # VitePress 站点：以下都是从 notes/、book/ 和 toyllm/ 生成的产物
 node_modules/
 docs/notes/
-docs/book/
+docs/ann4us/
 docs/toyllm/
 docs/public/
 docs/.vitepress/sidebar.json
