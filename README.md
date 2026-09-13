@@ -4,8 +4,8 @@
 
 书：
 
-* [人人能懂的人工神经网络](book/Book.md)（WIP，[在线版](https://zxh0.github.io/ann-book/book)）
-* [自己动手写LLM推理引擎](toyllm/README.md)（WIP，[在线版](https://zxh0.github.io/ann-book/toyllm)）
+* [人人能懂的人工神经网络](books/ann4us/Book.md)（WIP，[在线版](https://zxh0.github.io/ann-book/ann4us)）
+* [自己动手写LLM推理引擎](books/toyllm/README.md)（WIP，[在线版](https://zxh0.github.io/ann-book/toyllm)）
 
 笔记：
 

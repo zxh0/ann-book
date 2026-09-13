@@ -29,7 +29,7 @@ Three standing conventions from the preface that the manuscript must honour:
 | `code/poc/` | the original proof of concept. **Frozen reference, not the book's code.** |
 | `code/models/`, `code/reference/` | weights and baseline tensors, shared by both trees, gitignored |
 
-There is **no** `Book.md` and no `merge.py` here (unlike `../book/`). The table of contents lives in `_preface.md` under 本书结构; chapter order is otherwise carried by the filenames.
+There is **no** `Book.md` and no `merge.py` here (unlike `../ann4us/`). The table of contents lives in `_preface.md` under 本书结构; chapter order is otherwise carried by the filenames.
 
 **Read `code/CLAUDE.md` before writing any code.** It records the environment pins, the verified SmolLM2 config values, and the tokenizer / RoPE / KV-cache gotchas that were found the hard way. Reuse those findings rather than rediscovering them — but do not copy `poc/`'s file layout or API, since `book/` is deliberately a different take (one self-contained directory per chapter). Extending `poc/` is not the task.
 

@@ -15,7 +15,7 @@ Everything below about the environment, SmolLM2's verified config values, and th
 
 The point of the project is the *learning path*, not the performance. `transformers` modeling code is deliberately not used — tokenization, weight loading, RMSNorm / RoPE / GQA / SwiGLU, the KV cache, sampling, and the generate loop are all hand-written on top of plain `torch` tensor ops. Only `torch`, `safetensors`, `tokenizers`, and `huggingface-hub` are dependencies, and each exists to avoid re-implementing something that is *not* the lesson (tensor math, file format, BPE merge tables, downloads).
 
-This project lives inside the author's personal notes repo (git root `/Users/matrix/me/github/notes`); work happens on the `dev` branch, `master` is the main branch. It is a sibling of `../../book` (the manuscript of an earlier Chinese-language book on neural networks) and follows the same uv + Python 3.12 convention as `../../book/code`.
+This project lives inside the author's personal notes repo (git root `/Users/matrix/me/github/notes`); work happens on the `dev` branch, `master` is the main branch. It is a sibling of `../../ann4us` (the manuscript of an earlier Chinese-language book on neural networks) and follows the same uv + Python 3.12 convention as `../../ann4us/code`.
 
 ## Environment Constraints — read before touching dependencies
 

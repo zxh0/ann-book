@@ -4,7 +4,7 @@ Lectura en línea (con búsqueda de texto completo y renderizado de fórmulas): 
 
 Libro:
 
-* [Redes Neuronales Artificiales que Todo el Mundo Puede Entender](book/Book.md)（WIP）
+* [Redes Neuronales Artificiales que Todo el Mundo Puede Entender](books/ann4us/Book.md)（WIP）
 
 Notas:
 
