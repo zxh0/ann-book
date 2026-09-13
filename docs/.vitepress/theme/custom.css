@@ -47,13 +47,76 @@
   max-width: none;
 }
 
-/* 首页封面 */
-.VPHero .VPImage {
-  border-radius: 12px;
-  box-shadow: var(--vp-shadow-3);
+/* 首页的两本书：封面 + 简介的卡片，窄屏下自动堆成一列 */
+.book-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0 0;
 }
 
-/* 首页的笔记列表 */
+.book-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--vp-c-bg-soft);
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.book-card:hover {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: var(--vp-shadow-2);
+}
+
+.book-card img {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.book-card-body {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.book-card-body h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--vp-c-brand-1);
+}
+
+.book-card p {
+  margin: 0.4rem 0 0;
+  text-align: left;
+}
+
+.book-card-sub {
+  color: var(--vp-c-text-3);
+  font-size: 0.85em;
+}
+
+.book-card-blurb {
+  font-size: 0.92em;
+  line-height: 1.7;
+}
+
+.book-card-progress {
+  color: var(--vp-c-text-3);
+  font-size: 0.82em;
+}
+
+/* 笔记列表 */
 .note-list {
   margin: 1.5rem 0 0;
   padding: 0;

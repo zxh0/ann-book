@@ -1,26 +1,48 @@
-// 从 notes/ 和 book/ 生成 VitePress 站点内容。
-// notes/*.md 和 book/chapters/*.md 是唯一的内容来源，
-// docs/notes/、docs/book/、docs/public/、sidebar.json 都是生成物。
+// 从 notes/、book/ 和 toyllm/ 生成 VitePress 站点内容。
+// notes/*.md、book/chapters/*.md 和 toyllm/chapters/*.md 是唯一的内容来源，
+// docs/notes/、docs/book/、docs/toyllm/、docs/public/、sidebar.json 都是生成物。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const notesDir = path.join(root, 'notes')
-const chaptersDir = path.join(root, 'book', 'chapters')
 const docsDir = path.join(root, 'docs')
 const outDir = path.join(docsDir, 'notes')
-const bookOutDir = path.join(docsDir, 'book')
 const publicDir = path.join(docsDir, 'public')
 
-// 已经上站的章节（chapters/ 下的文件名）。写完一章往这里加一行即可，
-// 没列进来的章节只在 /book 的目录里露个标题，正文继续待在仓库里。
-const PUBLISHED = new Set(['02_ch00_basics.md', '03_ch01_neuron.md'])
+// 两本书，都是「写完一章发一章」：往 published 里加一行文件名，那一章就上站，
+// 没列进来的章节只在目录页里露个标题，正文继续待在仓库里。
+const BOOKS = [
+  {
+    // 《人人能懂的人工神经网络》：分章文件名是 NN_slug.md，章标题写成 ##，
+    // 插图在 book/images/ 下，正文里引作 ../images/xxx
+    key: 'ann',
+    srcDir: path.join(root, 'book', 'chapters'),
+    route: 'book', // 站点地址前缀，同时也是 docs/ 下的目录名
+    chapterRe: /^\d+_(.+)\.md$/,
+    skipTitle: '人人能懂的人工神经网络', // 书名页不算章节
+    promote: true, // 章标题 ## 提到 #，正文各级标题跟着上移一级
+    imagesDir: path.join(root, 'book', 'images'),
+    cover: { src: path.join(root, 'book', 'images', 'ann.jpg'), name: 'ann.jpg' },
+    published: new Set(['02_ch00_basics.md', '03_ch01_neuron.md']),
+  },
+  {
+    // 《自己动手写LLM推理引擎》：分章文件名是 chNN_slug.md，章标题本来就是 #，
+    // _front.md / _preface.md / todo.md 不匹配 chapterRe，自然被挡在外面
+    key: 'toyllm',
+    srcDir: path.join(root, 'toyllm', 'chapters'),
+    route: 'toyllm',
+    chapterRe: /^(ch\d+_.+)\.md$/,
+    promote: false,
+    imagesDir: path.join(root, 'toyllm', 'images'),
+    cover: { src: path.join(root, 'toyllm', 'aigc', 'front.png'), name: 'toyllm.png' },
+    published: new Set(['ch01_overview.md']),
+  },
+]
 
 // 笔记文件名约定：YYYY-MM-DD-Slug.md
 const NOTE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/
-// 分章文件名约定：NN_slug.md
-const CHAPTER_RE = /^\d+_(.+)\.md$/
 
 /** 把 <img> 标签转成标准 Markdown 图片语法，并把仓库里的相对路径改成站点绝对路径
  *  （from -> to，笔记是 ./images/ -> /images/，书是 ../images/ -> /images/book/）。
@@ -135,48 +157,59 @@ const sidebar = notes.map(({ date, title, link, collapsed, items }) => ({
 
 // ---- 书 ----
 
-// 书按章上站：PUBLISHED 里的章节生成页面，其余的只在 /book 的目录里列个标题。
-// 页面文件保留 chapters/ 的原始文件名（NN_slug.md），再用 VitePress 的 rewrites
-// 映射到干净的地址（/book/ch00-basics），这样 editLink 拿到的 filePath 还能直接
-// 对回 book/chapters/ 下的源文件。
-fs.rmSync(bookOutDir, { recursive: true, force: true })
-fs.mkdirSync(bookOutDir, { recursive: true })
+// 书按章上站：published 里的章节生成页面，其余的只在目录页里列个标题。
+// 页面文件保留 chapters/ 的原始文件名，再用 VitePress 的 rewrites 映射到干净的
+// 地址（/book/ch00-basics、/toyllm/ch01-overview），这样 editLink 拿到的 filePath
+// 还能直接对回各自 chapters/ 下的源文件。
+const rewrites = {}
 
-const chapters = []
-const bookRewrites = {}
+function buildBook(book) {
+  const bookOutDir = path.join(docsDir, book.route)
+  fs.rmSync(bookOutDir, { recursive: true, force: true })
+  fs.mkdirSync(bookOutDir, { recursive: true })
 
-for (const name of fs.readdirSync(chaptersDir).sort()) {
-  if (!CHAPTER_RE.test(name)) continue
+  const chapters = []
 
-  const raw = fs.readFileSync(path.join(chaptersDir, name), 'utf8')
-  const title = firstHeadingOf(raw)
-  if (!title || title === '人人能懂的人工神经网络') continue // 书名页不算章节
+  for (const name of fs.readdirSync(book.srcDir).sort()) {
+    if (!book.chapterRe.test(name)) continue
 
-  if (!PUBLISHED.has(name)) {
-    chapters.push({ title })
-    continue
+    const raw = fs.readFileSync(path.join(book.srcDir, name), 'utf8')
+    const title = firstHeadingOf(raw)
+    if (!title || title === book.skipTitle) continue
+
+    if (!book.published.has(name)) {
+      chapters.push({ title })
+      continue
+    }
+
+    const slug = name.replace(book.chapterRe, '$1').replace(/_/g, '-')
+    const cleaned = cleanup(raw, '../images/', `/images/${book.route}/`)
+    const body = book.promote ? promoteHeadings(cleaned) : cleaned
+    fs.writeFileSync(path.join(bookOutDir, name), body + '\n')
+    rewrites[`${book.route}/${name}`] = `${book.route}/${slug}.md`
+
+    const link = `/${book.route}/${slug}`
+    const subs = subsectionsOf(body)
+    chapters.push({
+      title,
+      link,
+      collapsed: subs.length > 0 ? true : undefined,
+      items: subs.map((t) => ({ text: t, link: `${link}#${anchor(t)}` })),
+    })
   }
 
-  const slug = name.replace(CHAPTER_RE, '$1').replace(/_/g, '-')
-  const body = promoteHeadings(cleanup(raw, '../images/', '/images/book/'))
-  fs.writeFileSync(path.join(bookOutDir, name), body + '\n')
-  bookRewrites[`book/${name}`] = `book/${slug}.md`
+  if (chapters.length === 0) throw new Error(`${book.srcDir} 下没有找到分章文件`)
 
-  const link = `/book/${slug}`
-  const subs = subsectionsOf(body)
-  chapters.push({
-    title,
-    link,
-    collapsed: subs.length > 0 ? true : undefined,
-    items: subs.map((t) => ({ text: t, link: `${link}#${anchor(t)}` })),
-  })
+  return {
+    // 目录页要列全部章节，侧边栏只放已经上站的
+    toc: chapters.map(({ title, link }) => ({ text: title, link })),
+    sidebar: chapters
+      .filter((c) => c.link)
+      .map(({ title, link, collapsed, items }) => ({ text: title, link, collapsed, items })),
+  }
 }
 
-// 目录页要列全部章节，侧边栏只放已经上站的
-const bookToc = chapters.map(({ title, link }) => ({ text: title, link }))
-const bookSidebar = chapters
-  .filter((c) => c.link)
-  .map(({ title, link, collapsed, items }) => ({ text: title, link, collapsed, items }))
+const books = Object.fromEntries(BOOKS.map((b) => [b.key, buildBook(b)]))
 
 // ---- 输出 ----
 
@@ -188,9 +221,8 @@ fs.writeFileSync(
       sidebar,
       // 首页要用：最新的几篇笔记（倒序）
       latest: [...notes].reverse().map(({ date, title, link }) => ({ date, title, link })),
-      bookSidebar,
-      bookToc,
-      bookRewrites,
+      books,
+      rewrites,
     },
     null,
     2
@@ -199,11 +231,15 @@ fs.writeFileSync(
 
 fs.mkdirSync(publicDir, { recursive: true })
 copyDir(path.join(notesDir, 'images'), path.join(publicDir, 'images'))
-// 书的插图放进 images/book/，跟笔记的插图分开，免得两边目录重名
-copyDir(path.join(root, 'book', 'images'), path.join(publicDir, 'images', 'book'))
-fs.copyFileSync(path.join(root, 'book', 'images', 'ann.jpg'), path.join(publicDir, 'ann.jpg'))
+// 每本书的插图各占 images/ 下的一个子目录，跟笔记的插图分开，免得几边目录重名
+for (const book of BOOKS) {
+  copyDir(book.imagesDir, path.join(publicDir, 'images', book.route))
+  fs.copyFileSync(book.cover.src, path.join(publicDir, book.cover.name))
+}
 
 console.log(
   `生成 ${notes.length} 篇笔记 -> docs/notes/，` +
-    `${bookSidebar.length}/${bookToc.length} 章正文 -> docs/book/`
+    BOOKS.map(
+      (b) => `${books[b.key].sidebar.length}/${books[b.key].toc.length} 章正文 -> docs/${b.route}/`
+    ).join('，')
 )
