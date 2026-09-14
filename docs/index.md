@@ -39,7 +39,7 @@ const cards = [
     title: '人人能懂的人工神经网络',
     subtitle: 'ANN for the Rest of Us',
     link: '/ann4us',
-    cover: '/ann.jpg',
+    cover: '/ann.png',
     blurb: '一本入门书，从最简单的人工神经元入手，循序渐进搭起完整的知识体系。只要有中学数学基础就能跟下来。',
     book: books.ann,
   },

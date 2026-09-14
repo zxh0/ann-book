@@ -8,7 +8,7 @@
 
 免责申明：本书还在很早期的草稿阶段，以下内容可能有很多逻辑混乱、甚至胡言乱语的地方，我会慢慢改进！
 
-<img src="./images/ann.jpg" alt="ann" style="zoom:150%;"/>
+<img src="./aigc/ann.png" alt="ann" style="zoom:150%;"/>
 
 <div style="page-break-after: always;"></div>
 

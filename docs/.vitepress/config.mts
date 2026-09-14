@@ -16,7 +16,7 @@ export default defineConfig({
   rewrites,
   head: [
     ['meta', { property: 'og:title', content: '学 AI，从零开始' }],
-    ['meta', { property: 'og:image', content: 'https://zxh0.github.io/ann-book/ann.jpg' }],
+    ['meta', { property: 'og:image', content: 'https://zxh0.github.io/ann-book/ann.png' }],
   ],
 
   markdown: {
