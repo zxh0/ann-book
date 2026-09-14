@@ -25,7 +25,7 @@ Three standing conventions from the preface that the manuscript must honour:
 | `images/chNN/` | exported PNGs, referenced from chapters as `../images/chNN/...` inside `<img ... style="zoom:50%;">` tags |
 | `draw/chNN.drawio` | draw.io sources for those PNGs (only ch01, ch02 exist so far) |
 | `code/` | one uv project holding two code trees — see `code/CLAUDE.md` |
-| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** |
+| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** Only `ch01/` is written so far. |
 | `code/poc/` | the original proof of concept. **Frozen reference, not the book's code.** |
 | `code/models/`, `code/reference/` | weights and baseline tensors, shared by both trees, gitignored |
 
@@ -74,6 +74,7 @@ Everything runnable lives under `code/`, and must go through `uv run` (system `p
 ```bash
 cd code
 uv sync --group dev                                # .venv + deps + pytest oracles
+uv run python book/ch01/five_lines.py              # run one chapter's code (book/ is where new work goes)
 uv run python poc/steps/07_forward.py              # run one PoC milestone script
 uv run pytest                                      # all tests (testpaths = poc/tests)
 uv run pytest poc/tests/test_rope.py -x            # one test file
@@ -84,21 +85,23 @@ Downloads (weights, `uv sync`) must bypass Claude Code's proxy — prefix with
 
 ## Writing conventions
 
-- Prose is **Simplified Chinese**; code, identifiers, filenames, and image names are English.
-- **No em-dashes (`——`) in prose.** The author dislikes them. Use a comma, a colon, or split the sentence instead. Chapters not yet rewritten in the author's voice still contain them (~170 occurrences left in ch02–ch12 and `_preface.md`); clear them as each chapter gets its pass.
-- No space between CJK and Latin/digits (`SmolLM2模型`, not `SmolLM2 模型`). Use full-width Chinese quotes `“”`, never `""`.
+The repo-wide rules live in `../../CLAUDE.md` — Simplified Chinese prose with English identifiers, no space between CJK and Latin/digits, full-width quotes, no em-dashes, and the notation convention (vectors **bold lowercase**, matrices plain uppercase). Only what is specific to this book is listed here.
+
+- **Em-dash cleanup is in progress**: 171 `——` remain in ch02–ch12 and `_preface.md`, from before the author's voice pass. Clear them as each chapter gets rewritten rather than in one sweep.
 - **The model is always `SmolLM2`, never `SmolLM`.** This typo has recurred several times; grep for `SmolLM[^2]` after editing.
 - Bold marks a term's first formal definition, given as **中文**（English）: **词元**（Token）, **前馈网络**（Feed-Forward Network，简称FFN）. Sampling parameters keep their conventional lowercase-hyphenated spelling in prose (`top-k`, `top-p`) and snake_case in code (`top_k`, `top_p`).
 - Chapter titles are 中文（English）where a standard English term exists — 分词（Tokenizer）, 归一化（RMSNorm） — and plain English only where no settled Chinese term exists (KV Cache, FlashAttention).
-- Chapters end with a 本章小节 section.
+- Chapters end with a `## 本章小结` section (小结 = summary; 小节 would mean subsection — the whole book was corrected from that typo, so do not reintroduce it).
 - Chapter files may still hold **raw pasted terminal or AI output as scratch material**, and `_preface.md` keeps its open questions in a trailing HTML comment. Do not assume everything in a chapter file is intended final text.
 - The preface is the author's own voice, first person. Preserve their wording when editing it; add rather than rewrite.
-- Math notation follows `../CLAUDE.md`: scalars lowercase italic, vectors **bold lowercase** (`\mathbf{x}`), matrices plain uppercase (`W`, `Q`, `K`, `V`) — never bold uppercase, never `\vec{}`.
-- A formula linter/fixer for the same Markdown-on-GitHub target lives one level up (note: `..` **is** the `ai_book` directory, so the path is `../.claude/...`, not `../ai_book/.claude/...`):
 
-  ```bash
-  python3 ../.claude/skills/check-formulas/scripts/check.py chapters/chNN_slug.md
-  python3 ../.claude/skills/check-formulas/scripts/fix.py   chapters/chNN_slug.md
-  ```
+### Linters
 
-  Run it after editing any chapter — inline `$...$` needs surrounding spaces, and it is easy to miss by hand.
+Both live at the repo root, two levels up (`../..` **is** the `ai_book` directory), and are documented in `../../CLAUDE.md`:
+
+```bash
+python3 ../../.claude/skills/check-formulas/scripts/check.py chapters/chNN_slug.md
+python3 ../../.claude/skills/check-prose/scripts/check.py    chapters/chNN_slug.md
+```
+
+Both accept a directory (`chapters/`) or the whole repo, and both have a `fix.py` beside them that takes `--dry-run`. Run `check-formulas` after editing any chapter — inline `$...$` needs surrounding spaces, and it is easy to miss by hand. `check-prose` is useful here mainly for the em-dash sweep above, but note it also reports on the `> **本章代码**` scaffolding blockquotes, which are not book content — ignore those hits rather than editing the scaffolding to satisfy the linter. Its toy-code rules dispatch on the `toy_*.py` filename, so they do not touch `code/`.

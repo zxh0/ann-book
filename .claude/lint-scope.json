@@ -1,0 +1,12 @@
+{
+  "_comment": "Per-area lint rule scoping, read by .claude/skills/{check-prose,check-formulas}. A file inherits the union of every matching pattern's `disable` list; anything not listed here gets all rules. Pass --all-rules to ignore this file.",
+  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md"],
+  "_exclude_why": "CLAUDE.md 是给 agent 看的说明，里面会引用反例（如 $x$, $w$ 这类演示记号、被禁用的 \\operatorname），不是书稿；todo.md 是草稿，明确不属于书",
+  "scopes": [
+    {
+      "path": "notes/**",
+      "disable": ["符号记法"],
+      "why": "笔记贴合各自论文的记法（\\boldsymbol、粗体大写矩阵），与书稿的记号约定不同，且是作者手写、刻意保留的"
+    }
+  ]
+}

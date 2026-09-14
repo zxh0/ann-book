@@ -9,7 +9,7 @@
 约定：
 - chapters/ 下的文件按文件名排序（NN_slug.md）决定章节顺序；
 - 每章之间自动插入分页符 <div style="page-break-after: always;"></div>；
-- 分章文件里图片路径写作 ../images/xxx，合并后统一改回 ./images/xxx；
+- 分章文件里资源路径写作 ../images/xxx、../aigc/xxx，合并后统一改回 ./xxx；
 - 书名下方自动插入“自动生成”提示，分章文件里不要写这行；
 - 版本号（版本：vYYYY.MM.DD）每次合并时自动更新为当天日期。
 """
@@ -37,10 +37,8 @@ def build() -> str:
         text = path.read_text(encoding="utf-8").strip()
         # 分章文件自身不应再包含分页符和“自动生成”提示，去掉以免重复
         text = text.replace(PAGE_BREAK, "").replace(GENERATED_NOTICE, "").strip()
-        # 图片路径：../images/ -> ./images/
-        text = text.replace("](../images/", "](./images/").replace(
-            'src="../images/', 'src="./images/'
-        )
+        # 资源路径：../images/、../aigc/ 等一律 ../ -> ./
+        text = text.replace("](../", "](./").replace('src="../', 'src="./')
         parts.append(text)
 
     merged = f"\n\n{PAGE_BREAK}\n\n".join(parts) + "\n"
