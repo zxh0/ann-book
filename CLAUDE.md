@@ -14,7 +14,7 @@ A Chinese-language writing repo holding **two books in progress** plus a series 
 
 **Read the relevant book's own CLAUDE.md before working on it.** Each carries that book's layout, build commands, chapter status, and local conventions. This file holds only what is true across the whole repo.
 
-Ongoing writing happens on the `dev` branch; `master` is the main branch. The git root is the enclosing personal notes repo (`/Users/matrix/me/github/notes`), not this directory.
+This directory **is** the git root (`github.com/zxh0/ann-book`), and `main` is the only branch — writing is committed straight to it.
 
 ## notes/
 
@@ -56,12 +56,14 @@ Not every rule suits every area, so the exceptions live in one file — `.claude
 
 ```json
 {
-  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md"],
+  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md", "node_modules/**", "docs/**"],
   "scopes": [{"path": "notes/**", "disable": ["符号记法"]}]
 }
 ```
 
-`exclude`d files are not checked at all; a file inherits the union of every matching scope's `disable` list. The notes deliberately follow each paper's own notation (`\boldsymbol`, bold uppercase matrices), which is why 符号记法 is off there — that one exemption accounts for ~166 findings. Exempted counts are always reported ("另有 N 处被 .claude/lint-scope.json 豁免"), never silently dropped. `--all-rules` ignores the config for one run.
+`exclude`d files are not checked at all; a file inherits the union of every matching scope's `disable` list. The notes deliberately follow each paper's own notation (`\boldsymbol`, bold uppercase matrices), which is why 符号记法 is off there — that one exemption accounts for ~166 findings. `node_modules/` and `docs/` are excluded because neither is manuscript source: the first is dependencies, the second is the VitePress build output, and scanning them buries the real findings in noise (a README's `${...}` template literals read as inline formulas). Exempted counts are always reported ("另有 N 处被 .claude/lint-scope.json 豁免"), never silently dropped.
+
+`--all-rules` puts the *scope* exemptions back for one run; `exclude` still applies, so it never drags `node_modules/` back in.
 
 **Adding a book or a notes folder means editing that JSON, not the scripts** — rules dispatch on file type, never on path. Shared logic lives in `.claude/skills/lintscope.py`.
 

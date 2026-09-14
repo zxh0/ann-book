@@ -97,7 +97,7 @@ The repo-wide rules live in `../../CLAUDE.md` — Simplified Chinese prose with 
 
 ### Linters
 
-Both live at the repo root, two levels up (`../..` **is** the `ai_book` directory), and are documented in `../../CLAUDE.md`:
+Both live at the repo root, two levels up (`../..` **is** the `ann-book` directory), and are documented in `../../CLAUDE.md`:
 
 ```bash
 python3 ../../.claude/skills/check-formulas/scripts/check.py chapters/chNN_slug.md

@@ -1,7 +1,7 @@
 {
   "_comment": "Per-area lint rule scoping, read by .claude/skills/{check-prose,check-formulas}. A file inherits the union of every matching pattern's `disable` list; anything not listed here gets all rules. Pass --all-rules to ignore this file.",
-  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md"],
-  "_exclude_why": "CLAUDE.md 是给 agent 看的说明，里面会引用反例（如 $x$, $w$ 这类演示记号、被禁用的 \\operatorname），不是书稿；todo.md 是草稿，明确不属于书",
+  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md", "node_modules/**", "docs/**"],
+  "_exclude_why": "CLAUDE.md 是给 agent 看的说明，里面会引用反例（如 $x$, $w$ 这类演示记号、被禁用的 \\operatorname），不是书稿；todo.md 是草稿，明确不属于书；node_modules/ 是依赖，docs/ 是 VitePress 生成的站点产物，两者都不是书稿来源，扫它们只会产生噪声（README 里的 ${...} 模板字符串会被当成行内公式）",
   "scopes": [
     {
       "path": "notes/**",

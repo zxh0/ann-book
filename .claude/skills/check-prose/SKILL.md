@@ -42,14 +42,14 @@ version: 1.1.0
 
 ```json
 {
-  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md"],
+  "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md", "node_modules/**", "docs/**"],
   "scopes": [
     {"path": "notes/**", "disable": ["符号记法"]}
   ]
 }
 ```
 
-- `exclude` 里的文件完全不检查（CLAUDE.md 是给 agent 看的说明，里面会引用反例）。
+- `exclude` 里的文件完全不检查（CLAUDE.md 是给 agent 看的说明，里面会引用反例；`node_modules/` 是依赖，`docs/` 是 VitePress 生成的站点，都不是书稿来源）。
 - `scopes` 里每条匹配到的 `disable` 取并集。笔记贴合各自论文的记法（`\boldsymbol`、粗体大写矩阵），
   与书稿的记号约定不同且是作者刻意保留的，所以对 `notes/**` 关掉 `符号记法`。
 - 被豁免的条数会在结尾如实报出（「另有 N 处被 .claude/lint-scope.json 豁免」），不会悄悄吞掉。
