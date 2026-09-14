@@ -174,7 +174,7 @@ ids → embed → [norm → attn → norm → ffn] × 30 → norm → lm_head �
 
 
 
-## 本章小节
+## 本章小结
 
 这一章做了两件事：
 

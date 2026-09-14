@@ -211,7 +211,7 @@ ids → embed → [norm → □ → norm → □] × 30 → norm → lm_head →
 
 
 
-## 本章小节
+## 本章小结
 
 这一章搭好了 Decoder Block 的结构：
 
