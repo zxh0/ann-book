@@ -236,7 +236,7 @@ ids → embed → [norm → attn → norm → □] × 30 → norm → lm_head �
 
 
 
-## 本章小节
+## 本章小结
 
 这一章填上了 Block 的第一个空位：
 

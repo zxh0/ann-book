@@ -178,7 +178,7 @@ Once upon a time, there was a little girl named Lily. She lived in a big house w
 
 
 
-## 本章小节
+## 本章小结
 
 这一章有两个目的。第一，按照数据流动的方向，把LLM推理引擎，尤其是LLM内部的各个基本模块，整个过了一遍。第二，给出全书的路线图，交代每一章要讲什么。
 

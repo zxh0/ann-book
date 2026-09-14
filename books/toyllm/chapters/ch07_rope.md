@@ -190,7 +190,7 @@ x_rotated = x * cos + rotate_half(x) * sin
 
 
 
-## 本章小节
+## 本章小结
 
 这一章补上了注意力缺的那块：
 
