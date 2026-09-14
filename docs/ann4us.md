@@ -14,7 +14,7 @@ const bookToc = books.ann.toc
 [books/ann4us/chapters/](https://github.com/zxh0/ann-book/tree/main/books/ann4us/chapters)，不过那些内容更早期，可能有很多逻辑混乱、甚至胡言乱语的地方。
 :::
 
-![人人能懂的人工神经网络](/ann.jpg)
+![人人能懂的人工神经网络](/ann.png)
 
 ## 这本书想做什么
 

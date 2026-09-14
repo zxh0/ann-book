@@ -17,14 +17,14 @@ const publicDir = path.join(docsDir, 'public')
 const BOOKS = [
   {
     // 《人人能懂的人工神经网络》：分章文件名是 NN_slug.md，章标题写成 ##，
-    // 插图在 books/ann4us/images/ 下，正文里引作 ../images/xxx
+    // 插图在 books/ann4us/images/ 下，正文里引作 ../images/xxx，封面另放在 aigc/ 下
     key: 'ann',
     dir: 'ann4us', // books/ 下的目录名
     route: 'ann4us', // 站点地址前缀，同时也是 docs/ 下的目录名
     chapterRe: /^\d+_(.+)\.md$/,
     skipTitle: '人人能懂的人工神经网络', // 书名页不算章节
     promote: true, // 章标题 ## 提到 #，正文各级标题跟着上移一级
-    cover: { from: path.join('images', 'ann.jpg'), name: 'ann.jpg' },
+    cover: { from: path.join('aigc', 'ann.png'), name: 'ann.png' },
     published: new Set(['02_ch00_basics.md', '03_ch01_neuron.md']),
   },
   {
