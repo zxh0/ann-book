@@ -6,11 +6,15 @@ readme = "README.md"
 requires-python = ">=3.12"
 # Runtime deps are deliberately minimal: tensor math, the checkpoint file format,
 # and Unicode property classes. Nothing that implements the model or the tokenizer.
+# `tabulate` only prints the tables the chapters quote; `wcwidth` is what teaches it
+# that a CJK character is two columns wide (without it every Chinese row misaligns).
 dependencies = [
     "numpy<2",
     "regex>=2026.9.3",
     "safetensors>=0.8.0",
+    "tabulate>=0.10.0",
     "torch<2.3",
+    "wcwidth>=0.8.3",
 ]
 
 # Oracles and test tooling only. `tokenizers` and `transformers` exist purely so
