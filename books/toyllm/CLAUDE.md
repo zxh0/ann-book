@@ -74,7 +74,7 @@ Everything runnable lives under `code/`, and must go through `uv run` (system `p
 ```bash
 cd code
 uv sync --group dev                                # .venv + deps + pytest oracles
-uv run python book/ch01/five_lines.py              # run one chapter's code (book/ is where new work goes)
+uv run python book/ch01/hello_5l.py              # run one chapter's code (book/ is where new work goes)
 uv run python poc/steps/07_forward.py              # run one PoC milestone script
 uv run pytest                                      # all tests (testpaths = poc/tests)
 uv run pytest poc/tests/test_rope.py -x            # one test file

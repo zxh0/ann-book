@@ -12,7 +12,7 @@
 | A2 | **最终 demo 用 base 还是 -Instruct。** 135M base 只会续写不会对话，读者写完十二章输入「你好」得到一段胡编，落差较大。切 Instruct 要多讲 chat template，还要多下一份权重 | 第十章要不要讲 chat template、全书结尾的情绪落点 |
 | A3 | **书名。** `_front.md` 已有英文副标题 *Build a Toy LLM Inference Engine (from Scratch)*，中文名仍待定 | 前言开头、封面 |
 | A4 | **要不要「本书用到的 PyTorch」一节，放哪。** 读者画像写的是「可以不懂 PyTorch」，但第二章一上来就在讲 `nn.Linear` 的 `(out, in)` 布局 | 第二章开头没法定稿 |
-| A5 | **环境搭建放哪**（装 uv、装 torch、下权重、代理坑）。`ch00.md` 并进前言后这块无家可归 | 候选：第一章开头 / 附录 A |
+| A5 | **环境搭建放哪**（装 uv、装 torch、下权重、代理坑）。`ch00.md` 并进前言后这块无家可归。下权重这一半已经有脚本了（`code/download_model.sh`，会跳过已有的、断了能接着下、连不上可以 `HF_ENDPOINT=https://hf-mirror.com`），正文只要指过去就行，剩下的是装 uv 和装 torch 那部分放哪 | 候选：第一章开头 / 附录 A |
 | A6 | **版本锁定怎么交代。** 读者用不同版本的 transformers，跑出来的数字和书里对不上。已决定「基准只存在代码里」，所以这条现在是 A5 的一部分，但仍需在某处告诉读者 | 同 A5 |
 | A7 | **要不要附录，要哪几个。** 候选：A 环境与踩坑（代理、`torch<2.3`、`transformers<5` 的锁定原因）、B SmolLM2 config 速查表（几乎每章都在引用）、C 术语对照（可对齐 `../ann4us` 附录 D） | |
 | A8 | **图上标签用中文还是英文。** 正文中文，图上 Tokenization / Embedding Layer / Decoder Block 全英文。两种都行，但要统一 | 后面十几张机制图 |
