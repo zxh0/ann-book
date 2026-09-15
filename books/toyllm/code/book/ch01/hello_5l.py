@@ -4,7 +4,7 @@
 
 运行：
     cd code
-    uv run python book/ch01/five_lines.py
+    uv run python book/ch01/hello_5l.py
 """
 
 from pathlib import Path

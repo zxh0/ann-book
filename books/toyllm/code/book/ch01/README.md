@@ -8,7 +8,7 @@
 
 ```bash
 cd code
-uv run python book/ch01/five_lines.py  # 就五行，跑通
+uv run python book/ch01/hello_5l.py  # 就五行，跑通
 uv run python book/ch01/hello.py       # 看结构、看参数量、看 logits
 uv run python book/ch01/baseline.py    # 生成全书基准，写入 ../reference/baseline.pt
 ```
@@ -17,7 +17,7 @@ uv run python book/ch01/baseline.py    # 生成全书基准，写入 ../referenc
 
 | 文件 | 作用 |
 |---|---|
-| `five_lines.py` | 只有五行有效代码，输出一行文字。整本书后面十章要手写的，就是这五行 |
+| `hello_5l.py` | 只有五行有效代码，输出一行文字。整本书后面十章要手写的，就是这五行 |
 | `hello.py` | 加载模型、打印结构和参数量、greedy 生成一段文字、看一眼 logits |
 | `baseline.py` | 同样跑一遍，但把 input_ids、31 层 hidden_states、logits、greedy 输出存成文件 |
 

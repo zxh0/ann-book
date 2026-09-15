@@ -33,21 +33,24 @@ This machine is an **Intel (x86_64) Mac**, and that dictates several pins:
 env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy uv sync --group dev
 ```
 
-For weights:
+For weights, use the script — it skips what is already there, resumes a broken download, and writes to `.part` until a file is complete, so an interrupted run never leaves a plausible-looking truncated checkpoint:
 
 ```bash
-env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy \
-  curl -sSL -o models/SmolLM2-135M/model.safetensors \
-  https://huggingface.co/HuggingFaceTB/SmolLM2-135M/resolve/main/model.safetensors
+env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy ./download_model.sh
 ```
 
-The same `env -u` prefix is needed for `hf download` or any `huggingface_hub` call. `hf-mirror.com` also works if HF is ever unreachable for real (use `/resolve/main/`, not `/raw/`, which 308s).
+The same `env -u` prefix is needed for `hf download` or any `huggingface_hub` call. If HF is ever unreachable for real, `HF_ENDPOINT=https://hf-mirror.com ./download_model.sh` switches mirrors.
+
+Two things the script encodes that are easy to get wrong by hand: the URL must be `/resolve/main/`, not `/raw/`, which 308s and serves an LFS pointer; and `curl --fail` is required, or an HTML error page gets saved *as* `config.json` and only blows up later inside `json.loads`.
+
+Note for editing it: `$f` directly followed by a CJK character is parsed as part of the variable name by macOS's `/bin/sh` (bash 3.2), so `set -u` kills the script with `f\xef: unbound variable`. Write `${f}` whenever Chinese text follows.
 
 ## Commands
 
 ```bash
 uv sync                          # create .venv, install locked deps
 uv sync --group dev              # + pytest
+./download_model.sh              # weights into models/SmolLM2-135M/ (~272 MB, idempotent)
 
 uv run python poc/steps/NN_name.py   # run one PoC milestone script
 uv run pytest                        # all tests (testpaths = poc/tests)
@@ -60,6 +63,7 @@ Always go through `uv run` — the system `python3` is 3.9 and has no torch.
 
 | Path | Role |
 |------|------|
+| `download_model.sh` | curls the whole SmolLM2-135M repo (10 files) into `models/`; skips what exists, resumes what broke |
 | `models/` | downloaded weights — **shared by both trees**, gitignored, never commit (`.gitkeep` only) |
 | `reference/` | reference tensors from `poc/steps/00_reference.py` — **shared**, gitignored, regenerable |
 | `pyproject.toml`, `uv.lock`, `.venv/` | one uv project for everything; `pythonpath = ["poc"]`, `testpaths = ["poc/tests"]` |

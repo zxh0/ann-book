@@ -34,7 +34,7 @@ def main():
     text  = tok.decode(out[0])""")
 
     print("\n  这五行就是本书后面十章要做的全部事情。")
-    print("  它们单独存了一份，可以直接跑：uv run python book/ch01/five_lines.py")
+    print("  它们单独存了一份，可以直接跑：uv run python book/ch01/hello_5l.py")
     print("\n  先把它跑一遍，看看终点长什么样。")
 
     # ---- 加载 ---------------------------------------------------------------
