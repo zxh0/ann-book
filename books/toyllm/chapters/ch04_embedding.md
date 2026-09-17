@@ -10,7 +10,7 @@
 > - **实验**：embed 一个词再原样投回去，看 top-10 是哪些词。argmax 通常是它自己，但**不保证**——点积会被向量模长带偏，这正好交棒给第五章
 > - **对拍**：方向一与 `model.model.embed_tokens` 相等，方向二与 `model.lm_head` 相等，都应逐位相同
 
-<img src="../images/ch01/emb.png" alt="EmbeddingLayer" style="zoom:50%;" />
+<img src="../images/ch04/progress.png" alt="Progress" style="zoom:50%;" />
 
 注意这张图上有**两个**红箭头：一个在最左边的 Embedding Layer，一个在最右边的 Linear Projection。一头一尾，隔着 30 层。
 

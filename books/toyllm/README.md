@@ -23,8 +23,8 @@
 | 章 | | |
 |---|---|---|
 | 一 | [LLM推理引擎概览](chapters/ch01_overview.md) | 先用别人的引擎跑起来，看到终点 |
-| 二 | [模型结构与权重](chapters/ch02_weights.md) | 272 个张量、134,515,008 个参数 |
-| 三 | [分词（Tokenizer）](chapters/ch03_tokenizer.md) | 全书唯一不碰权重的一章 |
+| 二 | [模型文件与权重](chapters/ch02_weights.md) | 272 个张量、134,515,008 个参数 |
+| 三 | [分词（Tokenization）](chapters/ch03_tokenizer.md) | 全书唯一不碰权重的一章 |
 | 四 | [词嵌入（Embedding）](chapters/ch04_embedding.md) | 一个矩阵读两遍，得到一个零层的 LLM |
 | 五 | [归一化（Normalization）](chapters/ch05_norm.md) | RMSNorm，pre-norm 与 post-norm |
 | 六 | [注意力机制（Attention）](chapters/ch06_attn.md) | 唯一让 token 互相交换信息的部件 |

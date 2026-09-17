@@ -42,8 +42,8 @@ Order follows the data flow of one forward pass, split into two parts.
 | Ch | Topic | PoC reference |
 |---|---|---|
 | ch01 | LLM推理引擎概览 — run it with `transformers` first, dump the baseline | `poc/steps/00_reference.py` |
-| ch02 | 模型结构与权重 | `poc/toyllm/config.py`, `weights.py`, `poc/steps/01_load_and_inspect.py` |
-| ch03 | 分词（Tokenizer） | `poc/toyllm/tokenizer.py`, `poc/steps/02_tokenizer.py` |
+| ch02 | 模型文件与权重 | `poc/toyllm/config.py`, `weights.py`, `poc/steps/01_load_and_inspect.py` |
+| ch03 | 分词（Tokenization） | `poc/toyllm/tokenizer.py`, `poc/steps/02_tokenizer.py` |
 | ch04 | 词嵌入（Embedding） — one matrix read both ways | `poc/toyllm/weights.py`, `model.py` |
 | ch05 | 归一化（Normalization） — RMSNorm, pre-norm vs post-norm | `layers.RMSNorm`, `poc/steps/03_rmsnorm.py` |
 | ch06 | 注意力机制（Attention） — GQA + causal mask | `layers.Attention`, `poc/steps/06_attention.py` |
@@ -87,10 +87,16 @@ Downloads (weights, `uv sync`) must bypass Claude Code's proxy — prefix with
 
 The repo-wide rules live in `../../CLAUDE.md` — Simplified Chinese prose with English identifiers, no space between CJK and Latin/digits, full-width quotes, no em-dashes, and the notation convention (vectors **bold lowercase**, matrices plain uppercase). Only what is specific to this book is listed here.
 
-- **Em-dash cleanup is in progress**: 171 `——` remain in ch02–ch12 and `_preface.md`, from before the author's voice pass. Clear them as each chapter gets rewritten rather than in one sweep.
+- **Em-dash cleanup is in progress**: 147 `——` remain in ch04–ch12 and `_preface.md`, from before the author's voice pass. Clear them as each chapter gets rewritten rather than in one sweep. (ch01–ch03 are clean.)
 - **The model is always `SmolLM2`, never `SmolLM`.** This typo has recurred several times; grep for `SmolLM[^2]` after editing.
+- **Large integers fall into three classes**, and ch02/ch03 already follow this:
+  - *Identifiers* never take a separator, because they say *which one*, not *how many*: token ids (46119), line numbers (第49347行), merge ranks (45867), code points (`U+0120`).
+  - *Spec values* a reader can look up in `config.json` / `tokenizer.json` stay bare, so prose and file read the same: 49152, 576, 8192, 30.
+  - *Quantities* take a comma every three digits from four digits up: 134,515,008 params, 269,060,552 bytes, 30,536 bytes, 35,136 params.
+  - One exception: a quantity being reconciled against a spec value in the same passage follows the spec value and stays bare. ch03's 48900 merge rules sits inside `49152 - 17 - 235 = 48900`, so both stay bare rather than mixing `49,152` with `48,900`.
+  - Numbers inside code blocks, JSON excerpts and quoted script output are verbatim and never reformatted.
 - Bold marks a term's first formal definition, given as **中文**（English）: **词元**（Token）, **前馈网络**（Feed-Forward Network，简称FFN）. Sampling parameters keep their conventional lowercase-hyphenated spelling in prose (`top-k`, `top-p`) and snake_case in code (`top_k`, `top_p`).
-- Chapter titles are 中文（English）where a standard English term exists — 分词（Tokenizer）, 归一化（RMSNorm） — and plain English only where no settled Chinese term exists (KV Cache, FlashAttention).
+- Chapter titles are 中文（English）where a standard English term exists — 分词（Tokenization）, 归一化（RMSNorm） — and plain English only where no settled Chinese term exists (KV Cache, FlashAttention).
 - Chapters end with a `## 本章小结` section (小结 = summary; 小节 would mean subsection — the whole book was corrected from that typo, so do not reintroduce it).
 - Chapter files may still hold **raw pasted terminal or AI output as scratch material**, and `_preface.md` keeps its open questions in a trailing HTML comment. Do not assume everything in a chapter file is intended final text.
 - The preface is the author's own voice, first person. Preserve their wording when editing it; add rather than rewrite.

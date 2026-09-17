@@ -36,7 +36,7 @@ const BOOKS = [
     chapterRe: /^(ch\d+_.+)\.md$/,
     promote: false,
     cover: { from: path.join('aigc', 'front.png'), name: 'toyllm.png' },
-    published: new Set(['ch01_overview.md', 'ch02_weights.md']),
+    published: new Set(['ch01_overview.md', 'ch02_weights.md', 'ch03_tokenizer.md']),
   },
 ]
 
