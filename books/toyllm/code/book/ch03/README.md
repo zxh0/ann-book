@@ -10,6 +10,7 @@ cd code
 uv sync --group dev                                  # tokenizers 在 dev 组里
 uv run python book/ch03/tokenize_demo.py             # 看一段文字被切成哪些词元
 uv run python book/ch03/tokenize_demo.py "任意一段话"
+uv run python book/ch03/byte_tokens.py               # 看词表里那 235 个单字节词元
 uv run python book/ch03/fake_engine.py               # 把两头接起来，转一圈
 ```
 
@@ -18,6 +19,7 @@ uv run python book/ch03/fake_engine.py               # 把两头接起来，转�
 | 文件 | 作用 |
 |---|---|
 | `tokenize_demo.py` | 给一段文字，打印切出来的词元和 ID，以及字符数与词元数之比 |
+| `byte_tokens.py` | 打印词表里 235 个单字节词元（ID 17~251），每行 20 个；外加 256 个字节里没进词表的那 21 个。只用标准库读 `tokenizer.json` |
 | `fake_engine.py` | 文字 → ID →（随机数冒充 LLM）→ ID → 文字，走完整条流水线，最后演示逐个词元解码为什么不行 |
 
 ## 只需要一个文件
