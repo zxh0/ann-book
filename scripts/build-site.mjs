@@ -45,12 +45,18 @@ const chaptersDirOf = (book) => path.join(booksDir, book.dir, 'chapters')
 // 笔记文件名约定：YYYY-MM-DD-Slug.md
 const NOTE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/
 
-/** 把 <img> 标签转成标准 Markdown 图片语法，并把仓库里的相对路径改成站点绝对路径
- *  （from -> to，笔记是 ./images/ -> /images/，书是 ../images/ -> /images/book/）。
+/** 把 <img> 标签转成标准 Markdown 图片语法，并把仓库里的相对路径改成站点绝对路径。
+ *  rebases 是一串 [前缀, 换成什么]，第一个匹配上的生效：笔记只有 ./ -> /，
+ *  书有两条，插图 ../images/ -> /images/<书>/ 和 AI 生成的章首图 ../aigc/ -> /aigc/<书>/。
  *  转成 Markdown 语法是为了让 VitePress 自动加上 base 前缀（裸 HTML 它不管）。
  *  Typora 写的 style="zoom:50%" 直接丢掉，图片宽度由正文栏宽兜住。 */
-function normalizeImages(md, from, to) {
-  const rebase = (url) => (url.startsWith(from) ? to + url.slice(from.length) : url)
+function normalizeImages(md, rebases) {
+  const rebase = (url) => {
+    for (const [from, to] of rebases) {
+      if (url.startsWith(from)) return to + url.slice(from.length)
+    }
+    return url
+  }
   return md
     .replace(/<img\s+([^>]*?)\/?>/g, (whole, attrs) => {
       const src = attrs.match(/src="([^"]+)"/)
@@ -61,8 +67,8 @@ function normalizeImages(md, from, to) {
     .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (whole, alt, url) => `![${alt}](${rebase(url)})`)
 }
 
-function cleanup(md, from, to) {
-  return normalizeImages(md, from, to)
+function cleanup(md, rebases) {
+  return normalizeImages(md, rebases)
     .replace(/<div style="page-break-after: always;"><\/div>/g, '') // 只对 PDF 有意义
     .replace(/\n{3,}/g, '\n\n')
     .trim()
@@ -132,7 +138,7 @@ for (const name of fs.readdirSync(notesDir).sort()) {
   if (!m) continue
 
   const slug = name.replace(/\.md$/, '')
-  const body = cleanup(fs.readFileSync(path.join(notesDir, name), 'utf8'), './', '/')
+  const body = cleanup(fs.readFileSync(path.join(notesDir, name), 'utf8'), [['./', '/']])
   fs.writeFileSync(path.join(outDir, `${slug}.md`), body + '\n')
 
   const link = `/notes/${slug}`
@@ -184,7 +190,10 @@ function buildBook(book) {
     }
 
     const slug = name.replace(book.chapterRe, '$1').replace(/_/g, '-')
-    const cleaned = cleanup(raw, '../images/', `/images/${book.route}/`)
+    const cleaned = cleanup(raw, [
+      ['../images/', `/images/${book.route}/`],
+      ['../aigc/', `/aigc/${book.route}/`],
+    ])
     const body = book.promote ? promoteHeadings(cleaned) : cleaned
     fs.writeFileSync(path.join(bookOutDir, name), body + '\n')
     rewrites[`${book.route}/${name}`] = `${book.route}/${slug}.md`
@@ -232,9 +241,11 @@ fs.writeFileSync(
 
 fs.mkdirSync(publicDir, { recursive: true })
 copyDir(path.join(notesDir, 'images'), path.join(publicDir, 'images'))
-// 每本书的插图各占 images/ 下的一个子目录，跟笔记的插图分开，免得几边目录重名
+// 每本书的插图各占 images/ 下的一个子目录，跟笔记的插图分开，免得几边目录重名；
+// aigc/ 下 AI 生成的章首图同理，另占 aigc/ 下的一个子目录
 for (const book of BOOKS) {
   copyDir(path.join(booksDir, book.dir, 'images'), path.join(publicDir, 'images', book.route))
+  copyDir(path.join(booksDir, book.dir, 'aigc'), path.join(publicDir, 'aigc', book.route))
   fs.copyFileSync(path.join(booksDir, book.dir, book.cover.from), path.join(publicDir, book.cover.name))
 }
 

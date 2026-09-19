@@ -1,5 +1,7 @@
 # LLM推理引擎概览
 
+![ch01](../aigc/ch01.png)
+
 《自己动手写LLM推理引擎》这本书的主要目的，并不是教你如何写出像[vLLM](https://github.com/vllm-project/vllm)那样的工业级推理引擎，而是带你理解LLM（大语言模型）推理引擎的基本原理。或者更准确地说，是想通过手写推理引擎，帮你理解LLM的工作原理。
 
 本书不会涉及LLM的架构设计和训练过程，只负责把推理过程说清楚。如果你对LLM的设计和训练感兴趣，可以参考Karpathy的[nanoGPT](https://github.com/karpathy/nanoGPT)，或者Raschka的[《Build a Large Language Model (From Scratch)》](https://github.com/rasbt/LLMs-from-scratch)（中译《从零构建大模型》）。如果你发现有更好的学习资料，也可以通过留言等方式告诉我。
