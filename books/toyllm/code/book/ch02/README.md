@@ -11,6 +11,7 @@ cd code
 uv run python book/ch02/load_header.py              # 读 N 和 JSON 头
 uv run python book/ch02/load_weights.py             # 按索引把 272 块数据逐块读出来
 uv run python book/ch02/load_weights_hf.py          # 同样的事，交给 safetensors 库做
+uv run python book/ch02/weights.py                  # 把 272 块读成一个对象，后面各章要用
 ```
 
 ## 文件
@@ -20,6 +21,7 @@ uv run python book/ch02/load_weights_hf.py          # 同样的事，交给 safe
 | `load_header.py` | 只用标准库，解出头部长度 N，打印 JSON 头，报出三段各多少字节 |
 | `load_weights.py` | 按 JSON 头里的索引把数据区一块一块读出来，打印每块的名字、offset、长度，验证正好读到文件末尾，再统计参数都花在哪 |
 | `load_weights_hf.py` | 同样的清单和统计，改用 safetensors 库，用来和上一个对照 |
+| `weights.py` | 把 272 块真的读进内存，整理成 `embed_tokens` + 30 层 + `norm`，这是后面各章直接拿来用的那个对象 |
 
 ## 三段结构
 
@@ -114,6 +116,47 @@ uv run python book/ch02/load_header.py | sed -n 2p | python3 -m json.tool
 只能用 `文件大小 - 数据总量 = 30536` 倒推出头部有多大。
 
 反过来，形状和 dtype 库给得很痛快，自己拆则要从 JSON 头里取。
+
+## 读成一个对象
+
+前面三个脚本都是「看」，`weights.py` 是「拿」。它把 272 块读进内存，整理成后面各章
+直接能用的三样东西：
+
+```
+embed_tokens   (49152, 576)   入口的词嵌入表，出口的线性投影用的也是它
+layers         30 个 dict     每个 dict 装 9 个张量
+norm           (576,)         整个模型最后那一个 RMSNorm
+```
+
+跑一下，第 0 层长这样：
+
+```
+  input_norm              (576,)         576
+  q_proj              (576, 576)     331,776
+  k_proj              (192, 576)     110,592
+  v_proj              (192, 576)     110,592
+  o_proj              (576, 576)     331,776
+  post_attn_norm          (576,)         576
+  gate_proj          (1536, 576)     884,736
+  up_proj            (1536, 576)     884,736
+  down_proj          (576, 1536)     884,736
+
+一层合计       3,540,096
+30层合计      106,202,880
+加上词嵌入和最后那个norm，全部参数 134,515,008
+```
+
+两个设计上的选择：
+
+**dict 里按数据流排序，不按字母序。** 先归一化，再注意力，再归一化，最后 FFN。
+文件里它们是按名字的字母序躺着的（所以 `layers.1` 后面紧跟 `layers.10`），而
+`w.layers[2]` 一定是第 2 层，下标即层号。
+
+**层数是数出来的，不是写死的。** `count_layers()` 扫一遍张量名，看 `model.layers.N.`
+里的 N 最大到几。`config.json` 里当然写着 30，但那个文件这一章还不打开。
+
+一个代价要知道：文件里是 bf16，读进来统一升成 fp32，所以内存占用是文件的两倍，
+大约 538 MB。
 
 ## 引擎现状
 

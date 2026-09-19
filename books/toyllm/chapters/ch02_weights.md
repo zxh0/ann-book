@@ -253,9 +253,9 @@ BF16的设计取舍很清楚：**牺牲精度，保住动态范围**。它的指
 
 ## 加载模型
 
-读到这里，你应该已经对HF的模型文件、尤其是Safetensors文件的格式，比较了解了。这种文件是非常简单的，写一个脚本来加载它非常容易。我们前面也提到过两个脚本，一个用于加载元数据，一个用于加载模型权重数据。但是这两个脚本主要是为了打印模型信息，为了写推理引擎，我们还需要一个专门加载数据的模块。
+读到这里，你应该已经对HF的模型文件、尤其是Safetensors文件的格式，比较了解了。这种文件是非常简单的，写一个脚本来加载它非常容易，前面那两个脚本就是这么干的。但它们的目的是打印模型信息，而为了写推理引擎，我们还需要一个专门把权重拿到手的模块。
 
-不过，我决定不写这个模块。因为我们的目标是理解推理过程，而不是痴迷于造轮子。由于Safetensors是HF提出的，所以它已经提供了一个很好用的库，就叫做`safetensors`。用这个库，我们几行代码就能搞定模型加载，类似下面这样：
+自己从头解析文件这件事，我决定不做了。我们的目标是理解推理过程，而不是痴迷于造轮子。由于Safetensors是HF提出的，所以它已经提供了一个很好用的库，就叫做`safetensors`。用这个库，几行代码就能把张量取出来，类似下面这样：
 
 ```python
 with safe_open(PATH, framework="pt") as f:
@@ -264,9 +264,50 @@ with safe_open(PATH, framework="pt") as f:
         print(f"{name:<48}{str(tuple(t.shape)):>14}  {t.dtype}")
 ```
 
-由于这个库太好用了，我们就不手写了。后面需要加载模型的时候，我们直接用这个库就可以了。我们更多地把精力放在LLM的推理上面，而不是这些琐碎的细节上。
-
 不过有一点要说明：这个库的Python接口并不提供`data_offsets`，`keys()`只给名字，`get_tensor()`只给张量，每块数据在文件里的位置是看不见的。这也是前面那两个脚本值得自己写一遍的理由，只有亲手拆过一次，你才知道`get_tensor()`背后究竟发生了什么。
+
+解析文件的活交给库，但为了后面用着方便，我们还是要在它外面包一层。这一章的随书源代码里有一个`weights.py`，里面的`Weights`类就是干这件事的：一次性把272个张量全读进来，整理成三样东西，入口的`embed_tokens`、中间的30层，以及最后的`norm`。下面是这个类的主要代码：
+
+```python
+class Weights:
+  def __init__(self, model_dir=MODEL_DIR, dtype=torch.float32):
+    path = Path(model_dir) / "model.safetensors"
+    with safe_open(path, framework="pt") as f:
+
+      def get(name): # 读一个张量，顺便从bf16升成fp32。
+        return f.get_tensor(name).to(dtype)
+
+      self.embed_tokens = get("model.embed_tokens.weight")
+      self.n_layers = count_layers(f.keys())
+
+      p = "model.layers" # 纯粹为了书面排版，省点宽度
+      self.layers = [
+        {
+          "input_norm"    : get(f"{p}.{i}.input_layernorm.weight"),
+          "q_proj"        : get(f"{p}.{i}.self_attn.q_proj.weight"),
+          "k_proj"        : get(f"{p}.{i}.self_attn.k_proj.weight"),
+          "v_proj"        : get(f"{p}.{i}.self_attn.v_proj.weight"),
+          "o_proj"        : get(f"{p}.{i}.self_attn.o_proj.weight"),
+          "post_attn_norm": get(f"{p}.{i}.post_attention_layernorm.weight"),
+          "gate_proj"     : get(f"{p}.{i}.mlp.gate_proj.weight"),
+          "up_proj"       : get(f"{p}.{i}.mlp.up_proj.weight"),
+          "down_proj"     : get(f"{p}.{i}.mlp.down_proj.weight"),
+        }
+        for i in range(self.n_layers)
+      ]
+
+      self.norm = get("model.norm.weight")
+```
+
+有三个细节值得说一下。
+
+第一，每一层的9个张量装在一个dict里，而且是**按数据流的顺序**排的：先归一化，再注意力，再归一化，最后FFN。前面说过，它们在文件里是按名字的字母序躺着的，那个顺序适合机器，不适合人。名字也都缩短了，`model.layers.0.self_attn.q_proj.weight`这一长串，到这里就是`q_proj`。
+
+第二，层数是**数出来的**，不是写死的。`count_layers()`扫一遍张量的名字，看`model.layers.N.`里的N最大到几。这样`w.layers[2]`拿到的一定是第2层，下标就是层号，不会再踩到字母序那个坑。`config.json`里当然写着30，不过那个文件我们留到第四章再打开。
+
+第三，所有权重在读进来的时候，统一从BF16升成了FP32，也就是前面那一节说的，CPU上FP32的算子更快也更全。代价是内存翻倍：文件是269MB，读进内存大约538MB。
+
+后面各章需要权重的时候，直接构造一个`Weights`，然后按名字取就行了。
 
 
 
@@ -274,6 +315,8 @@ with safe_open(PATH, framework="pt") as f:
 
 这一章做了三件事。第一，把HF模型仓库里那十个文件挨个认了一遍，知道了权重和分词是两套完全独立的东西，分在不同的文件里。第二，把`model.safetensors`从头到尾拆开了，说白了，这个文件就是一个索引加一堆浮点数：`30,536`个字节的文件头，外加`269,030,016`个字节的权重，每个参数用BF16格式，占两个字节。第三，顺着元数据看清了`134,515,008`个参数的分布：272个张量，其中270个属于30个Decoder块；参数的大头在FFN，占了将近六成，而注意力还不到两成。
 
+除了读懂，这一章还留下了一件工具：`weights.py`里的`Weights`类。解析Safetensors格式的活交给了HF的`safetensors`库，我们只在外面包了一层：把272个张量一次性读进内存，整理成入口的`embed_tokens`、中间的30层和最后的`norm`，名字缩短，顺序按数据流排。从第四章起，凡是要用到权重的地方，都从它这里拿。
+
 另外还有两个坑值得记住，它们都不会报错。`data_offsets`是相对权重数据的起点算的，忘了加文件头，读出来是一堆合法但全错的浮点数；张量在文件里按名字的字母序排列，不是按层的顺序，按出现顺序去数第几层，第2层会拿到第11层的权重。这两种错误都不会让程序崩溃，只会让模型胡说八道。好在用现成的库可以绕过它们，但知道它们的存在，将来换个格式、换个框架时你才不会栽跟头。
 
-不过到目前为止，我们手上也只是一堆浮点数而已，一次计算都还没做过。下一章我们暂时把这堆浮点数放一边，去处理第一章总览图上最外侧那两个盒子，也就是分词。整个第三章都不会用到`model.safetensors`文件，等到第四章，才会真正从里面取出模型权重。
+不过到目前为止，我们手上也只是一堆浮点数而已，一次计算都还没做过。下一章我们暂时把这堆浮点数放一边，去处理第一章总览图上最外侧那两个盒子，也就是分词。整个第三章都不会用到`model.safetensors`文件，等到第四章，才会第一次拿这堆浮点数真的去算点什么。
