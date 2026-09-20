@@ -16,6 +16,9 @@ hero:
       text: LLM推理引擎（WIP）
       link: /toyllm
     - theme: alt
+      text: 小工具
+      link: /tools
+    - theme: alt
       text: GitHub
       link: https://github.com/zxh0/ann-book
 
@@ -75,6 +78,10 @@ const cards = [
 ## 一个笔记系列
 
 **[图解 LLM 系列笔记](/notes)**：一篇一个主题，解读 LLM 相关的论文和核心公式。从 DeepSeek 的 MLA、Flash Attention、位置编码，一路写到 Kimi Delta Attention、LongCat Sparse Attention。系列里也有一篇[大白话版](/notes/2026-08-30-LLM)，不讲公式不贴代码，从拼音输入法说起，写给完全没有基础的读者。
+
+## 几个小工具
+
+**[小工具](/tools)**：写书和写笔记时顺手做的纯前端单页工具，打开就能用，数据不出浏览器。目前有一个 <a :href="withBase('/tools/safetensors-viewer/')" target="_blank" rel="noopener">safetensors 参数布局查看器</a>，给它一个 HF 模型仓库名，它把模型里每个张量在文件中的字节排布画出来，只下载文件头，通常几十 KB。
 
 ## 反馈贡献
 

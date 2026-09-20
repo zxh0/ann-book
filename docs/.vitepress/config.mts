@@ -40,6 +40,7 @@ export default defineConfig({
           { text: '自己动手写LLM推理引擎', link: '/toyllm' },
         ],
       },
+      { text: '工具', link: '/tools', activeMatch: '^/tools' },
       { text: '提问纠错', link: 'https://github.com/zxh0/ann-book/issues' },
     ],
 

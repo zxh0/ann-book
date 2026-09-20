@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>safetensors 参数布局查看器</title>
+<style>
+:root{
+  --bg:#f7f7f8; --panel:#ffffff; --border:#e3e5e8; --text:#16181d; --muted:#6b7280;
+  --accent:#2563eb; --accent-soft:#eff4ff; --code:#f2f3f5; --ok:#15803d; --warn:#b45309; --err:#b91c1c;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15171c; --panel:#1c1f26; --border:#2d3139; --text:#e6e8ec; --muted:#9aa1ad;
+    --accent:#6ea8fe; --accent-soft:#1e2637; --code:#22262e; --ok:#4ade80; --warn:#fbbf24; --err:#f87171;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}   /* 否则 label.f 的 display:flex 会盖掉 hidden */
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:24px 16px 64px}
+h1{font-size:22px; margin:0 0 4px}
+h2{font-size:16px; margin:0 0 12px}
+.sub{color:var(--muted); margin:0 0 20px}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px}
+.tabs{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px}
+.tabs button{
+  background:transparent; border:1px solid transparent; color:var(--muted);
+  padding:6px 12px; border-radius:7px; cursor:pointer; font-size:14px; font-family:inherit;
+}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{background:var(--accent-soft); color:var(--accent); border-color:var(--border)}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+label.f{display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted)}
+input[type=text],input[type=password],select{
+  background:var(--panel); color:var(--text); border:1px solid var(--border);
+  border-radius:7px; padding:7px 9px; font:13px/1.4 inherit; min-width:0;
+}
+input[type=text]:focus,select:focus{outline:2px solid var(--accent-soft); border-color:var(--accent)}
+button.go{
+  background:var(--accent); color:#fff; border:0; border-radius:7px; padding:8px 16px;
+  font:14px/1.4 inherit; cursor:pointer; align-self:flex-end;
+}
+button.go:hover{filter:brightness(1.08)}
+button.go:disabled{opacity:.5; cursor:default}
+button.mini{
+  background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:6px;
+  padding:4px 10px; font:12px/1.4 inherit; cursor:pointer;
+}
+button.mini:hover{border-color:var(--accent); color:var(--accent)}
+.presets{margin-top:10px; font-size:12px; color:var(--muted)}
+.presets button{margin:2px 6px 2px 0}
+.hint{font-size:12px; color:var(--muted); margin-top:10px}
+code,kbd{background:var(--code); border-radius:4px; padding:1px 5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px}
+.status{font-size:13px; padding:10px 14px; border-radius:8px; margin-bottom:16px; display:none}
+.status.on{display:block}
+.status.busy{background:var(--accent-soft); color:var(--accent)}
+.status.err{background:color-mix(in srgb,var(--err) 12%, transparent); color:var(--err)}
+.status.ok{background:color-mix(in srgb,var(--ok) 12%, transparent); color:var(--ok)}
+.statusrow{display:flex; align-items:center; gap:12px}
+#statusText{flex:1}
+.bar{height:6px; border-radius:3px; margin-top:9px; overflow:hidden;
+  background:color-mix(in srgb,currentColor 16%, transparent)}
+.bar i{display:block; height:100%; width:0; border-radius:3px; background:currentColor; transition:width .2s ease-out}
+.bar.indet i{width:34%; animation:barslide 1.1s ease-in-out infinite}
+@keyframes barslide{from{margin-left:-34%} to{margin-left:100%}}
+details.log{margin-top:10px}
+details.log summary{cursor:pointer; font-size:12px; color:var(--muted)}
+.logline{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; color:var(--muted); padding:2px 0}
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+.stat{background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px}
+.stat .k{font-size:12px; color:var(--muted)}
+.stat .v{font-size:18px; font-weight:600; margin-top:2px; word-break:break-all}
+.stat .v small{display:block; font-size:12px; font-weight:400; color:var(--muted); white-space:nowrap}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+.chip{font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:3px 10px}
+.legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; font-size:12px}
+.legend span{display:flex; align-items:center; gap:5px}
+.sw{width:11px; height:11px; border-radius:3px; display:inline-block}
+.ctrl{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:12px; font-size:13px; color:var(--muted)}
+.ctrl input[type=range]{vertical-align:middle}
+svg{display:block; width:100%; height:auto; overflow:visible}
+.chartbg{background:#fdfdfd; border:1px solid var(--border); border-radius:8px; padding:10px 8px}
+.crumb{font-size:13px; margin-bottom:10px; color:var(--muted)}
+.crumb a{color:var(--accent); cursor:pointer; text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+table{border-collapse:collapse; width:100%; font-size:12.5px}
+th,td{text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); white-space:nowrap}
+th{position:sticky; top:0; background:var(--panel); cursor:pointer; user-select:none; font-weight:600}
+th:hover{color:var(--accent)}
+td.num,th.num{text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.tablewrap{max-height:560px; overflow:auto; border:1px solid var(--border); border-radius:8px}
+pre.json{max-height:520px; overflow:auto; background:var(--code); border-radius:8px; padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; margin:0}
+#tip{
+  position:fixed; pointer-events:none; z-index:50; display:none; max-width:420px;
+  background:#111827ee; color:#f3f4f6; border-radius:7px; padding:7px 10px; font-size:12px; line-height:1.5;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre; box-shadow:0 6px 20px #0005;
+}
+.fmt{display:flex; align-items:stretch; height:40px; border-radius:6px; overflow:hidden; border:1px solid var(--border); margin:10px 0 6px}
+.fmt div{display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; text-align:center; padding:0 6px}
+.fmt .a{background:#334155; flex:0 0 120px}
+.fmt .b{background:#2563eb; flex:0 0 200px}
+.fmt .c{background:#64748b; flex:1}
+footer{color:var(--muted); font-size:12px; text-align:center; margin-top:32px}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>safetensors 参数布局查看器</h1>
+<p class="sub">只下载文件头，把模型权重在文件里的排布画出来。纯前端，数据不经过任何服务器。</p>
+
+<div class="card">
+  <div class="tabs" id="srcTabs">
+    <button data-p="hf" class="on">HF 模型仓库</button>
+    <button data-p="local">本地文件</button>
+    <button data-p="url">任意 URL</button>
+  </div>
+
+  <div id="p-hf">
+    <div class="row">
+      <label class="f">站点
+        <select id="site">
+          <option value="huggingface.co">huggingface.co</option>
+          <option value="hf-mirror.com">hf-mirror.com（国内镜像）</option>
+          <option value="__custom">自定义</option>
+        </select>
+      </label>
+      <label class="f" id="siteCustomWrap" hidden>域名
+        <input type="text" id="siteCustom" placeholder="example.com" size="18">
+      </label>
+      <label class="f" style="flex:1 1 280px">模型 ID
+        <input type="text" id="repo" value="HuggingFaceTB/SmolLM2-135M" placeholder="用户名/模型名" style="width:100%">
+      </label>
+      <label class="f">分支或版本
+        <input type="text" id="rev" value="main" size="8">
+      </label>
+      <button class="go" id="goHF">加载</button>
+    </div>
+    <div class="presets">
+      快速试试：
+      <button class="mini" data-repo="HuggingFaceTB/SmolLM2-135M">SmolLM2-135M</button>
+      <button class="mini" data-repo="Qwen/Qwen2.5-0.5B">Qwen2.5-0.5B</button>
+      <button class="mini" data-repo="openai-community/gpt2">GPT-2</button>
+      <button class="mini" data-repo="google-bert/bert-base-uncased">BERT-base</button>
+      <button class="mini" data-repo="meta-llama/Llama-3.2-1B">Llama-3.2-1B（需授权）</button>
+    </div>
+    <details class="log" style="margin-top:10px">
+      <summary>访问令牌（仅私有或需授权的仓库才需要）</summary>
+      <div class="row" style="margin-top:8px">
+        <label class="f" style="flex:1 1 320px">HF Token
+          <input type="password" id="token" placeholder="hf_..." style="width:100%">
+        </label>
+        <label class="f" style="flex-direction:row; align-items:center; gap:6px; align-self:flex-end; padding-bottom:8px">
+          <input type="checkbox" id="saveToken"> 记在本机浏览器里
+        </label>
+      </div>
+      <div class="hint">令牌只在你的浏览器里使用，直接发给所选站点，不会经过第三方。</div>
+    </details>
+  </div>
+
+  <div id="p-local" hidden>
+    <div class="row">
+      <input type="file" id="file" accept=".safetensors" multiple>
+    </div>
+    <div class="hint">可以一次选中多个分片文件（<code>model-00001-of-0000N.safetensors</code>）。浏览器只读取文件开头的几十 KB，几十 GB 的文件也是秒开。</div>
+  </div>
+
+  <div id="p-url" hidden>
+    <div class="row">
+      <label class="f" style="flex:1 1 420px">文件 URL
+        <input type="text" id="url" placeholder="https://.../model.safetensors" style="width:100%">
+      </label>
+      <button class="go" id="goURL">加载</button>
+    </div>
+    <div class="hint">服务器需要支持 HTTP Range 请求，并允许跨域访问（CORS）。</div>
+  </div>
+
+  <div class="fmt" title="safetensors 文件布局">
+    <div class="a">8 字节<br>头长度 N</div>
+    <div class="b">N 字节 JSON 头<br>（本工具只读这两段）</div>
+    <div class="c">张量数据区（不下载）</div>
+  </div>
+  <div class="hint">
+    safetensors 开头 8 字节是小端 <code>uint64</code>，表示紧随其后的 JSON 头有多长。JSON 头里记录了每个张量的
+    <code>dtype</code>、<code>shape</code> 和它在数据区中的字节区间。所以两次 Range 请求就够了。
+  </div>
+</div>
+
+<div class="status" id="status">
+  <div class="statusrow"><span id="statusText"></span><button class="mini" id="cancel" hidden>取消</button></div>
+  <div class="bar" id="bar" hidden><i id="barFill"></i></div>
+</div>
+
+<div id="result" hidden>
+
+  <div class="card">
+    <h2>概览</h2>
+    <div class="cards" id="stats"></div>
+    <div class="chips" id="dtypes"></div>
+    <details class="log" id="logBox"><summary>网络请求记录</summary><div id="log"></div></details>
+  </div>
+
+  <div class="card">
+    <div class="tabs" id="viewTabs">
+      <button data-v="ribbon" class="on">内存布局</button>
+      <button data-v="tree">结构树</button>
+      <button data-v="layer">逐层对比</button>
+      <button data-v="table">张量表</button>
+      <button data-v="json">原始 JSON 头</button>
+    </div>
+
+    <div id="v-ribbon">
+      <div class="ctrl">
+        <span>行数 <input type="range" id="rows" min="4" max="48" value="16"><b id="rowsN">16</b></span>
+        <label><input type="checkbox" id="stroke" checked> 画出张量边界</label>
+        <span style="flex:1"></span>
+        <button class="mini" data-export="svg">导出 SVG</button>
+        <button class="mini" data-export="png">导出 PNG</button>
+      </div>
+      <div class="chartbg"><div id="ribbon"></div></div>
+      <div class="legend" id="legend1"></div>
+      <div class="hint">整条带子按字节顺序铺开，宽度正比于字节数。深灰色是文件头，斜纹缺口是未被任何张量覆盖的空隙。</div>
+    </div>
+
+    <div id="v-tree" hidden>
+      <div class="ctrl">
+        <span>面积表示
+          <select id="treeMetric"><option value="bytes">字节数</option><option value="params">参数量</option></select>
+        </span>
+        <span style="flex:1"></span>
+        <button class="mini" data-export="svg">导出 SVG</button>
+        <button class="mini" data-export="png">导出 PNG</button>
+      </div>
+      <div class="crumb" id="crumb"></div>
+      <div class="chartbg"><div id="tree"></div></div>
+      <div class="hint">按张量名里的点号层层划分，点击方块可以下钻，点面包屑返回。</div>
+    </div>
+
+    <div id="v-layer" hidden>
+      <div class="ctrl">
+        <span>条长表示
+          <select id="layerMetric"><option value="bytes">字节数</option><option value="params">参数量</option></select>
+        </span>
+        <span style="flex:1"></span>
+        <button class="mini" data-export="svg">导出 SVG</button>
+        <button class="mini" data-export="png">导出 PNG</button>
+      </div>
+      <div class="chartbg"><div id="layer"></div></div>
+      <div class="legend" id="legend2"></div>
+      <div class="hint">每行是一层，同一行里按文件中的先后顺序堆叠。Transformer 的各层通常完全一样，一眼就能看出是否有例外。比例尺按各层定，超出的行（一般是词嵌入）在右端画断口，真实数值标在行尾。</div>
+    </div>
+
+    <div id="v-table" hidden>
+      <div class="ctrl">
+        <input type="text" id="filter" placeholder="过滤张量名，支持正则" style="flex:1 1 260px">
+        <button class="mini" id="csv">导出 CSV</button>
+      </div>
+      <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    </div>
+
+    <div id="v-json" hidden>
+      <div class="ctrl">
+        <span id="jsonMeta"></span>
+        <span style="flex:1"></span>
+        <button class="mini" id="dlJson">下载 header.json</button>
+      </div>
+      <pre class="json" id="json"></pre>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  纯静态单文件，可直接放在 GitHub Pages 上。所有解析都在浏览器里完成。
+</footer>
+</div>
+<div id="tip"></div>
+<script>
+"use strict";
+
+/* ---------- small utils ---------- */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const natcmp = new Intl.Collator("en", { numeric: true }).compare;
+
+function fmtBytes(b) {
+  if (b == null) return "-";
+  const u = ["B", "KB", "MB", "GB", "TB"];
+  let i = 0, v = b;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return (i === 0 ? v : v.toFixed(v < 10 ? 2 : 1)) + " " + u[i];
+}
+function fmtNum(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(2) + "K";
+  return String(n);
+}
+function fmtInt(n) { return n.toLocaleString("en-US"); }
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, ...kids) {
+  const n = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+  for (const c of kids) n.append(c);
+  return n;
+}
+
+/* ---------- dtype table ---------- */
+const DTYPE_BITS = {
+  F64: 64, F32: 32, F16: 16, BF16: 16, F8_E4M3: 8, F8_E5M2: 8, F8_E8M0: 8, F4: 4,
+  I64: 64, U64: 64, I32: 32, U32: 32, I16: 16, U16: 16, I8: 8, U8: 8, I4: 4, U4: 4, BOOL: 8,
+};
+
+/* ---------- role classification & palette ---------- */
+const ROLES = {
+  embed:     { c: "#4c78a8", t: "词嵌入" },
+  q_proj:    { c: "#f58518", t: "Q 投影" },
+  k_proj:    { c: "#e45756", t: "K 投影" },
+  v_proj:    { c: "#72b7b2", t: "V 投影" },
+  qkv:       { c: "#ef8636", t: "QKV 合并投影" },
+  o_proj:    { c: "#54a24b", t: "注意力输出投影" },
+  gate_proj: { c: "#b279a2", t: "FFN 门控" },
+  up_proj:   { c: "#ff9da6", t: "FFN 升维" },
+  down_proj: { c: "#9d755d", t: "FFN 降维" },
+  norm:      { c: "#a0a7b4", t: "归一化" },
+  lm_head:   { c: "#eeca3b", t: "输出头" },
+  bias:      { c: "#79706e", t: "偏置" },
+  other:     { c: "#8c8c8c", t: "其他" },
+};
+function roleOf(name) {
+  const n = name.toLowerCase();
+  if (/lm_head|output_layer/.test(n)) return "lm_head";
+  if (/embed|wte|wpe|tok_emb|word_emb|position_emb/.test(n)) return "embed";
+  if (/norm|\bln_|\.ln\b|layer_scale/.test(n)) return "norm";
+  if (/qkv|query_key_value|c_attn|in_proj/.test(n)) return "qkv";        // 融合的 QKV
+  if (/q_proj|\.wq\b|\bquery\b/.test(n)) return "q_proj";
+  if (/k_proj|\.wk\b|\bkey\b/.test(n)) return "k_proj";
+  if (/v_proj|\.wv\b|\bvalue\b/.test(n)) return "v_proj";
+  if (/o_proj|out_proj|\.wo\b|attn\.c_proj|attention\.output|attention\.dense/.test(n)) return "o_proj";
+  if (/gate_proj|\bw1\b|gate_up/.test(n)) return "gate_proj";
+  if (/up_proj|\bw3\b|fc1|c_fc|intermediate|dense_h_to_4h/.test(n)) return "up_proj";
+  if (/down_proj|\bw2\b|fc2|c_proj|output\.dense|dense_4h_to_h/.test(n)) return "down_proj";
+  if (n.endsWith(".bias")) return "bias";
+  return "other";
+}
+function layerOf(name) {
+  const m = /(?:^|\.)(?:layers|layer|h|blocks|block)\.(\d+)(?:\.|$)/.exec(name);
+  return m ? +m[1] : null;
+}
+function shade(hex, k) { // k<1 darker, k>1 lighter
+  const n = parseInt(hex.slice(1), 16);
+  const f = v => Math.max(0, Math.min(255, Math.round(v * k)));
+  return "#" + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+/* ---------- byte sources ---------- */
+let netBytes = 0;
+let ABORT = null;
+const logLines = [];
+function log(s) { logLines.push(s); }
+
+function fileSource(file) {
+  return {
+    label: file.name, kind: "本地",
+    async read(start, end) { // inclusive end
+      const buf = await file.slice(start, end + 1).arrayBuffer();
+      netBytes += buf.byteLength;
+      log(`读取 ${file.name} 字节 ${start}-${end} → ${fmtBytes(buf.byteLength)}`);
+      return new Uint8Array(buf);
+    },
+  };
+}
+function urlSource(url, headers, label) {
+  return {
+    label: label || url.split("/").pop(), kind: "网络", url,
+    async read(start, end) {
+      const res = await fetch(url, { headers: { ...headers, Range: `bytes=${start}-${end}` }, signal: ABORT && ABORT.signal });
+      if (res.status === 206) {
+        const buf = await res.arrayBuffer();
+        netBytes += buf.byteLength;
+        log(`GET ${this.label} Range: bytes=${start}-${end} → 206, ${fmtBytes(buf.byteLength)}`);
+        return new Uint8Array(buf);
+      }
+      if (res.status === 200) { // server ignored Range: stream just what we need, then abort
+        const need = end + 1, chunks = [], reader = res.body.getReader();
+        let got = 0;
+        while (got < need) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value); got += value.length;
+        }
+        try { await reader.cancel(); } catch (e) { /* ignore */ }
+        netBytes += got;
+        log(`GET ${this.label} → 200（服务器忽略了 Range），流式读取 ${fmtBytes(got)} 后中断`);
+        const all = new Uint8Array(got);
+        let o = 0;
+        for (const c of chunks) { all.set(c, o); o += c.length; }
+        return all.slice(start, end + 1);
+      }
+      throw new Error(`HTTP ${res.status} ${res.statusText}（${this.label}）`);
+    },
+  };
+}
+async function tryFetchJSON(url, headers, label) {
+  try {
+    const res = await fetch(url, { headers, signal: ABORT && ABORT.signal });
+    if (!res.ok) { log(`GET ${label} → HTTP ${res.status}`); return null; }
+    const text = await res.text();
+    netBytes += new Blob([text]).size;
+    log(`GET ${label} → 200, ${fmtBytes(new Blob([text]).size)}`);
+    return JSON.parse(text);
+  } catch (e) {
+    if (e.name === "AbortError") throw e;
+    log(`GET ${label} 失败：${e.message}`); return null;
+  }
+}
+
+/* ---------- safetensors header ---------- */
+async function readShard(src) {
+  const head = await src.read(0, 7);
+  if (head.length < 8) throw new Error(`${src.label} 太小，不像 safetensors 文件`);
+  const n = Number(new DataView(head.buffer, head.byteOffset, 8).getBigUint64(0, true));
+  if (!(n > 0 && n < 1024 * 1024 * 1024)) throw new Error(`${src.label} 的头长度异常（${n}），可能不是 safetensors 文件`);
+  const raw = await src.read(8, 8 + n - 1);
+  const text = new TextDecoder().decode(raw);
+  let json;
+  try { json = JSON.parse(text); } catch (e) { throw new Error(`${src.label} 的 JSON 头解析失败：${e.message}`); }
+  return { src, headerLen: n, json };
+}
+
+function buildModel(shards, title, config) {
+  RAW_HEADERS = shards.map(sh => ({ label: sh.src.label, json: sh.json }));
+  const tensors = [];
+  let base = 0, metadata = null;
+  const shardInfo = [];
+  for (const sh of shards) {
+    const dataStart = base + 8 + sh.headerLen;
+    let maxEnd = 0;
+    for (const [name, v] of Object.entries(sh.json)) {
+      if (name === "__metadata__") { metadata = Object.assign(metadata || {}, v); continue; }
+      const [s, e] = v.data_offsets;
+      const shape = v.shape || [];
+      const numel = shape.reduce((a, b) => a * b, 1);
+      const bytes = e - s;
+      if (e > maxEnd) maxEnd = e;
+      tensors.push({
+        name, dtype: v.dtype, shape, numel, bytes,
+        bits: numel > 0 ? (bytes * 8) / numel : (DTYPE_BITS[v.dtype] || 0),
+        localStart: s, localEnd: e,
+        gStart: dataStart + s, gEnd: dataStart + e,
+        shard: sh.src.label,
+        role: roleOf(name), layer: layerOf(name),
+      });
+    }
+    const fileSize = 8 + sh.headerLen + maxEnd;
+    shardInfo.push({ label: sh.src.label, headerLen: sh.headerLen, fileStart: base, dataStart, fileSize, count: Object.keys(sh.json).length });
+    base += fileSize;
+  }
+  tensors.sort((a, b) => a.gStart - b.gStart);
+  return { title, tensors, shards: shardInfo, total: base, metadata, config };
+}
+
+/* ---------- loading flows ---------- */
+// progress: 0..1 为确定进度，null 为来回滚动的不确定进度，省略则隐藏进度条
+function setStatus(kind, html, opts = {}) {
+  $("#status").className = "status on " + kind;
+  $("#statusText").innerHTML = html;
+  const bar = $("#bar");
+  bar.hidden = !("progress" in opts);
+  if (!bar.hidden) {
+    bar.classList.toggle("indet", opts.progress == null);
+    if (opts.progress != null) $("#barFill").style.width = (opts.progress * 100).toFixed(1) + "%";
+  }
+  $("#cancel").hidden = !opts.cancel;
+}
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); }
+  }));
+  return out;                                  // 顺序与输入一致，分片顺序不能乱
+}
+
+// 并发读取各分片的文件头，边读边推进进度条
+async function readShards(sources) {
+  const n = sources.length;
+  let done = 0;
+  const tick = () => setStatus("busy",
+    n > 1 ? `正在读取分片文件头 <b>${done}/${n}</b>（已传输 ${fmtBytes(netBytes)}）`
+          : "正在读取文件头…",
+    { progress: n > 1 ? done / n : null, cancel: true });
+  tick();
+  return mapLimit(sources, Math.min(6, n), async src => {
+    const sh = await readShard(src);
+    done++; tick();
+    return sh;
+  });
+}
+function siteHost() {
+  const v = $("#site").value;
+  return v === "__custom" ? ($("#siteCustom").value.trim() || "huggingface.co") : v;
+}
+function pickShardFiles(names) {
+  let st = names.filter(n => n.endsWith(".safetensors"));
+  if (!st.length) return null;
+  const root = st.filter(n => !n.includes("/"));
+  if (root.length) st = root;
+  const sharded = st.filter(n => /-\d+-of-\d+\.safetensors$/.test(n));
+  if (sharded.length) return sharded.sort(natcmp);
+  if (st.includes("model.safetensors")) return ["model.safetensors"];
+  return st.sort(natcmp);
+}
+
+async function run(fn) {
+  netBytes = 0; logLines.length = 0;
+  ABORT = new AbortController();
+  $("#result").hidden = true;
+  setStatus("busy", "正在读取文件头…", { progress: null, cancel: true });
+  try {
+    const model = await fn();
+    if (!model.tensors.length) throw new Error("JSON 头里没有任何张量");
+    if (model.tensors.length > 3000) {          // 张量多的时候绘制要花几秒，先让浏览器刷一帧
+      setStatus("busy", `正在绘制 ${fmtInt(model.tensors.length)} 个张量…`, { progress: 1 });
+      await new Promise(r => setTimeout(r, 32));
+    }
+    MODEL = model;
+    render();
+    $("#result").hidden = false;
+    setStatus("ok", `读取完成：共 ${model.tensors.length} 个张量，全程只传输了 <b>${fmtBytes(netBytes)}</b>，` +
+      `相当于 ${fmtBytes(model.total)} 文件的 ${(netBytes / model.total * 100).toFixed(3)}%。`);
+  } catch (e) {
+    if (e.name === "AbortError") { setStatus("err", "已取消。"); return; }
+    console.error(e);
+    let extra = "";
+    if (e instanceof TypeError) {
+      extra = "<br><span style='font-size:12px'>多半是跨域（CORS）或者网络不通。可以换国内镜像站，或者把文件下载到本地后用“本地文件”方式打开。</span>";
+    }
+    setStatus("err", "出错了：" + esc(e.message) + extra);
+  } finally {
+    ABORT = null;
+  }
+}
+
+async function loadHF() {
+  const host = siteHost();
+  const repo = $("#repo").value.trim().replace(/^https?:\/\/[^/]+\//, "").replace(/\/+$/, "");
+  const rev = $("#rev").value.trim() || "main";
+  if (!repo) throw new Error("请填写模型 ID");
+  const token = $("#token").value.trim();
+  const headers = token ? { Authorization: "Bearer " + token } : {};
+  const base = `https://${host}`;
+  const fileURL = f => `${base}/${repo}/resolve/${rev}/${f}`;
+
+  setStatus("busy", "正在查看仓库里有哪些文件…", { progress: null, cancel: true });
+  const config = await tryFetchJSON(fileURL("config.json"), headers, "config.json");
+
+  let files = null;
+  const api = await tryFetchJSON(`${base}/api/models/${repo}/revision/${encodeURIComponent(rev)}`, headers, "API 文件列表");
+  if (api && Array.isArray(api.siblings)) files = pickShardFiles(api.siblings.map(s => s.rfilename));
+  if (!files) {
+    const idx = await tryFetchJSON(fileURL("model.safetensors.index.json"), headers, "model.safetensors.index.json");
+    if (idx && idx.weight_map) files = Array.from(new Set(Object.values(idx.weight_map))).sort(natcmp);
+    else files = ["model.safetensors"];
+  }
+  const shards = await readShards(files.map(f => urlSource(fileURL(f), headers, f)));
+  return buildModel(shards, `${repo} @ ${rev}`, config);
+}
+
+async function loadURL() {
+  const u = $("#url").value.trim();
+  if (!u) throw new Error("请填写文件 URL");
+  if (/index\.json$/.test(u)) {                       // 指向分片索引时，自动展开所有分片
+    const idx = await tryFetchJSON(u, {}, u.split("/").pop());
+    if (!idx || !idx.weight_map) throw new Error("这个 index.json 里没有 weight_map");
+    const dir = u.slice(0, u.lastIndexOf("/") + 1);
+    const files = Array.from(new Set(Object.values(idx.weight_map))).sort(natcmp);
+    const shards = await readShards(files.map(f => urlSource(dir + f, {}, f)));
+    return buildModel(shards, `${files.length} 个分片`, null);
+  }
+  const [sh] = await readShards([urlSource(u, {})]);
+  return buildModel([sh], u.split("/").pop() || u, null);
+}
+
+async function loadFiles(list) {
+  const files = Array.from(list).sort((a, b) => natcmp(a.name, b.name));
+  const shards = await readShards(files.map(fileSource));
+  return buildModel(shards, files.length === 1 ? files[0].name : `${files.length} 个分片`, null);
+}
+
+/* ---------- rendering ---------- */
+let MODEL = null;
+let RAW_HEADERS = [];
+let treePath = [];
+
+function render() {
+  treePath = null;
+  renderStats();
+  renderRibbon();
+  renderTree();
+  renderLayer();
+  renderTable();
+  renderJSON();
+}
+
+function renderStats() {
+  const m = MODEL;
+  const params = m.tensors.reduce((s, t) => s + t.numel, 0);
+  const dataBytes = m.tensors.reduce((s, t) => s + t.bytes, 0);
+  const headerBytes = m.shards.reduce((s, x) => s + 8 + x.headerLen, 0);
+  const emb = m.tensors.filter(t => t.role === "embed" || t.role === "lm_head").reduce((s, t) => s + t.numel, 0);
+  const layers = m.tensors.reduce((s, t) => Math.max(s, t.layer == null ? -1 : t.layer), -1) + 1;
+  const cfg = m.config || {};
+  const cells = [
+    ["模型", `<span style="font-size:14px">${esc(m.title)}</span>`],
+    ["参数总量", `${fmtNum(params)} <small>${fmtInt(params)}</small>`],
+    ["非嵌入参数", `${fmtNum(params - emb)} <small>占 ${(100 - emb / params * 100).toFixed(1)}%</small>`],
+    ["文件总大小", `${fmtBytes(m.total)}`],
+    ["张量个数", `${m.tensors.length}`],
+    ["层数", layers ? `${layers}` : "-"],
+    ["分片数", `${m.shards.length}`],
+    ["JSON 头", `${fmtBytes(headerBytes)} <small>占 ${(headerBytes / m.total * 100).toFixed(3)}%</small>`],
+    ["实际传输", `${fmtBytes(netBytes)} <small>${(netBytes / m.total * 100).toFixed(3)}%</small>`],
+  ];
+  if (cfg.model_type) cells.splice(1, 0, ["架构", esc(cfg.architectures ? cfg.architectures[0] : cfg.model_type)]);
+  if (cfg.hidden_size) cells.push(["隐藏维度", `${cfg.hidden_size}`]);
+  if (cfg.num_attention_heads) cells.push(["注意力头", `${cfg.num_attention_heads}` + (cfg.num_key_value_heads ? ` <small>KV ${cfg.num_key_value_heads}</small>` : "")]);
+  if (cfg.vocab_size) cells.push(["词表大小", `${fmtInt(cfg.vocab_size)}`]);
+  if (dataBytes !== m.total - headerBytes) cells.push(["未覆盖空隙", fmtBytes(m.total - headerBytes - dataBytes)]);
+
+  $("#stats").innerHTML = cells.map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  const byType = new Map();
+  for (const t of MODEL.tensors) {
+    const o = byType.get(t.dtype) || { n: 0, b: 0, p: 0 };
+    o.n++; o.b += t.bytes; o.p += t.numel; byType.set(t.dtype, o);
+  }
+  const chips = Array.from(byType.entries()).sort((a, b) => b[1].b - a[1].b)
+    .map(([d, o]) => `<span class="chip"><b>${esc(d)}</b> · ${o.n} 个 · ${fmtNum(o.p)} 参数 · ${fmtBytes(o.b)}</span>`);
+  const meta = MODEL.metadata && Object.keys(MODEL.metadata).length
+    ? Object.entries(MODEL.metadata).map(([k, v]) => `<span class="chip">${esc(k)}: ${esc(String(v)).slice(0, 60)}</span>`) : [];
+  $("#dtypes").innerHTML = chips.join("") + meta.join("");
+  $("#log").innerHTML = logLines.map(l => `<div class="logline">${esc(l)}</div>`).join("");
+}
+
+function legendHTML(roles) {
+  return roles.map(r => `<span><i class="sw" style="background:${ROLES[r].c}"></i>${r} <span style="color:var(--muted)">${ROLES[r].t}</span></span>`).join("");
+}
+function usedRoles() {
+  const seen = new Set(MODEL.tensors.map(t => t.role));
+  return Object.keys(ROLES).filter(r => seen.has(r));
+}
+function tipOf(t) {
+  return [
+    t.name,
+    `dtype  ${t.dtype}   shape  [${t.shape.join(", ")}]`,
+    `参数   ${fmtInt(t.numel)}（${fmtNum(t.numel)}）`,
+    `字节   ${fmtInt(t.bytes)}（${fmtBytes(t.bytes)}）`,
+    `区间   ${fmtInt(t.localStart)} – ${fmtInt(t.localEnd)}`,
+    MODEL.shards.length > 1 ? `分片   ${t.shard}` : null,
+  ].filter(Boolean).join("\n");
+}
+
+/* --- view 1: memory ribbon --- */
+function renderRibbon() {
+  const m = MODEL, R = +$("#rows").value, useStroke = $("#stroke").checked;
+  const W = 1000, GUT = 78, PADR = 8, rowH = 22, gap = 9, top = 6;
+  const bpr = m.total / R;
+  const svg = el("svg", {
+    viewBox: `0 0 ${GUT + W + PADR} ${top + R * (rowH + gap)}`,
+    "font-family": "ui-monospace, Menlo, Consolas, monospace",
+  });
+  const defs = el("defs");
+  defs.append(el("pattern", { id: "gapPat", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" },
+    el("rect", { width: 6, height: 6, fill: "#d1d5db" }), el("rect", { width: 2, height: 6, fill: "#9ca3af" })));
+  svg.append(defs);
+
+  for (let r = 0; r < R; r++) {
+    const y = top + r * (rowH + gap);
+    svg.append(el("rect", { x: GUT, y, width: W, height: rowH, fill: "#e9ecef", rx: 2 }));
+    const t = el("text", { x: GUT - 8, y: y + rowH / 2 + 4, "text-anchor": "end", "font-size": 10, fill: "#9aa1ad" });
+    t.textContent = fmtBytes(r * bpr);
+    svg.append(t);
+  }
+  const put = (s, e, fill, tip, stroke) => {
+    if (e <= s) return;
+    const r0 = Math.floor(s / bpr), r1 = Math.min(R - 1, Math.floor((e - 1e-6) / bpr));
+    for (let r = Math.max(0, r0); r <= r1; r++) {
+      const lo = Math.max(s, r * bpr), hi = Math.min(e, (r + 1) * bpr);
+      if (hi <= lo) continue;
+      const x = GUT + ((lo - r * bpr) / bpr) * W;
+      const w = Math.max(((hi - lo) / bpr) * W, 0.4);
+      const a = { x: x.toFixed(2), y: top + r * (rowH + gap), width: w.toFixed(2), height: rowH, fill, "data-tip": tip };
+      if (stroke && w > 1.6) { a.stroke = "#ffffff"; a["stroke-width"] = 0.5; }
+      svg.append(el("rect", a));
+    }
+  };
+
+  // header regions + shard separators
+  for (const sh of m.shards) {
+    put(sh.fileStart, sh.dataStart, "#3f4654",
+      `${sh.label}\n文件头 ${fmtBytes(8 + sh.headerLen)}（8 字节长度 + JSON）\n共描述 ${sh.count} 个张量`, false);
+  }
+  // tensors + gaps, shard by shard
+  for (const sh of m.shards) {
+    const end = sh.fileStart + sh.fileSize;
+    let cursor = sh.dataStart;
+    for (const t of m.tensors) {
+      if (t.gStart < sh.dataStart || t.gEnd > end) continue;
+      if (t.gStart > cursor) put(cursor, t.gStart, "url(#gapPat)", `空隙 ${fmtBytes(t.gStart - cursor)}`, false);
+      const base = ROLES[t.role].c;
+      put(t.gStart, t.gEnd, t.layer != null && t.layer % 2 ? shade(base, 0.82) : base, tipOf(t), useStroke);
+      cursor = Math.max(cursor, t.gEnd);
+    }
+    if (cursor < end) put(cursor, end, "url(#gapPat)", `空隙 ${fmtBytes(end - cursor)}`, false);
+  }
+  if (m.shards.length > 1) {
+    for (const sh of m.shards.slice(1)) {
+      const r = Math.floor(sh.fileStart / bpr);
+      const x = GUT + ((sh.fileStart - r * bpr) / bpr) * W;
+      svg.append(el("rect", { x: x.toFixed(2), y: top + r * (rowH + gap) - 3, width: 1.5, height: rowH + 6, fill: "#111827" }));
+    }
+  }
+  $("#ribbon").replaceChildren(svg);
+  $("#legend1").innerHTML = legendHTML(usedRoles()) +
+    `<span><i class="sw" style="background:#3f4654"></i>文件头</span>`;
+}
+
+/* --- view 2: treemap --- */
+function worstRatio(row, sum, len) {
+  let mx = -Infinity, mn = Infinity;
+  for (const v of row) { if (v > mx) mx = v; if (v < mn) mn = v; }
+  return Math.max((len * len * mx) / (sum * sum), (sum * sum) / (len * len * mn));
+}
+function squarify(nodes, x, y, w, h) {
+  const out = [];
+  const items = nodes.filter(n => n.value > 0).slice().sort((a, b) => b.value - a.value);
+  let total = items.reduce((s, n) => s + n.value, 0);
+  if (!items.length || w <= 1 || h <= 1 || total <= 0) return out;
+  let i = 0, rx = x, ry = y, rw = w, rh = h;
+  while (i < items.length && rw > 0.5 && rh > 0.5) {
+    const short = Math.min(rw, rh);
+    const scale = (rw * rh) / total;
+    const row = []; let rowArea = 0, best = Infinity;
+    while (i + row.length < items.length) {
+      const cand = items[i + row.length].value * scale;
+      const wr = worstRatio(row.concat([cand]), rowArea + cand, short);
+      if (row.length === 0 || wr <= best) { row.push(cand); rowArea += cand; best = wr; }
+      else break;
+    }
+    const thick = rowArea / short;
+    let off = 0;
+    for (let k = 0; k < row.length; k++) {
+      const len = row[k] / thick;
+      if (rw >= rh) out.push({ node: items[i + k], x: rx, y: ry + off, w: thick, h: len });
+      else out.push({ node: items[i + k], x: rx + off, y: ry, w: len, h: thick });
+      off += len;
+    }
+    if (rw >= rh) { rx += thick; rw -= thick; } else { ry += thick; rh -= thick; }
+    total -= rowArea / scale;
+    i += row.length;
+  }
+  return out;
+}
+function buildTree(metric) {
+  const root = { name: MODEL.title, children: new Map(), value: 0, path: [], big: null };
+  for (const t of MODEL.tensors) {
+    const v = metric === "bytes" ? t.bytes : t.numel;
+    let cur = root, path = [];
+    cur.value += v;
+    if (!cur.big || v > cur.big.v) cur.big = { v, t };
+    for (const p of t.name.split(".")) {
+      path = path.concat([p]);
+      if (!cur.children.has(p)) cur.children.set(p, { name: p, children: new Map(), value: 0, path, big: null });
+      cur = cur.children.get(p);
+      cur.value += v;
+      if (!cur.big || v > cur.big.v) cur.big = { v, t };
+    }
+    cur.tensor = t;
+  }
+  return root;
+}
+function renderTree() {
+  const metric = $("#treeMetric").value;
+  const root = buildTree(metric);
+  if (treePath === null) {                              // 首次展示时下钻到第一个真正分叉的层级
+    treePath = [];
+    let n = root;
+    while (n.children.size && n.children.size < 3 && !n.tensor) {
+      const [k, v] = Array.from(n.children.entries())[0];
+      treePath.push(k); n = v;
+    }
+  }
+  let cur = root;
+  for (const p of treePath) { const nx = cur.children.get(p); if (!nx) { treePath = []; cur = root; break; } cur = nx; }
+
+  const W = 1000, H = 540;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, "font-family": "-apple-system, 'PingFang SC', sans-serif" });
+  const fmtV = v => metric === "bytes" ? fmtBytes(v) : fmtNum(v) + " 参数";
+  const colorOf = n => ROLES[n.tensor ? n.tensor.role : (n.big ? n.big.t.role : "other")].c;
+
+  function draw(b, opacity, label, inline) {
+    const n = b.node;
+    const g = el("g", {
+      "data-tip": n.tensor ? tipOf(n.tensor)
+        : `${n.path.join(".")}\n${fmtV(n.value)}（占 ${(n.value / root.value * 100).toFixed(2)}%）\n含 ${countLeaves(n)} 个张量\n点击下钻`,
+      style: n.children.size ? "cursor:pointer" : "",
+    });
+    g.append(el("rect", {
+      x: b.x.toFixed(2), y: b.y.toFixed(2),
+      width: Math.max(0, b.w - 1).toFixed(2), height: Math.max(0, b.h - 1).toFixed(2),
+      fill: colorOf(n), "fill-opacity": opacity, rx: 2, stroke: "#ffffff", "stroke-width": 0.8,
+    }));
+    if (label && b.w > 46 && b.h > 15) {
+      const t = el("text", { x: (b.x + 5).toFixed(2), y: (b.y + 13).toFixed(2), "font-size": 11, fill: "#1b1f27" });
+      t.textContent = clip(inline ? `${n.name} · ${fmtV(n.value)}` : n.name, Math.floor((b.w - 8) / 6.4));
+      g.append(t);
+      if (!inline && b.h > 30 && b.w > 62) {
+        const t2 = el("text", { x: (b.x + 5).toFixed(2), y: (b.y + 25).toFixed(2), "font-size": 10, fill: "#1b1f27", "fill-opacity": 0.65 });
+        t2.textContent = fmtV(n.value);
+        g.append(t2);
+      }
+    }
+    if (n.children.size) g.addEventListener("click", ev => { ev.stopPropagation(); treePath = n.path.slice(); renderTree(); });
+    svg.append(g);
+  }
+
+  const kids = Array.from(cur.children.values());
+  for (const b of squarify(kids.length ? kids : [cur], 0, 0, W, H)) {
+    const sub = Array.from(b.node.children.values());
+    const nest = sub.length > 1 && b.w > 74 && b.h > 48;   // 够大就把下一层也画进去
+    draw(b, nest ? 0.3 : 0.92, true, nest);
+    if (nest) {
+      const inner = squarify(sub, b.x + 3, b.y + 17, b.w - 8, b.h - 22);
+      for (const c of inner) draw(c, 0.92, inner.length <= 40);
+    }
+  }
+  $("#tree").replaceChildren(svg);
+  const parts = ["全部"].concat(treePath);
+  $("#crumb").innerHTML = parts.map((p, i) =>
+    i === parts.length - 1 ? `<b>${esc(p)}</b>` : `<a data-i="${i}">${esc(p)}</a>`).join(" <span style='opacity:.5'>/</span> ") +
+    `　<span style="opacity:.7">${fmtV(cur.value)}</span>`;
+  $$("#crumb a").forEach(a => a.addEventListener("click", () => { treePath = treePath.slice(0, +a.dataset.i); renderTree(); }));
+}
+function countLeaves(n) { return n.tensor ? 1 : Array.from(n.children.values()).reduce((s, c) => s + countLeaves(c), 0); }
+function clip(s, n) { return s.length <= n ? s : s.slice(0, Math.max(1, n - 1)) + "…"; }
+
+/* --- view 3: per layer --- */
+function renderLayer() {
+  const metric = $("#layerMetric").value;
+  const val = t => metric === "bytes" ? t.bytes : t.numel;
+  const groups = new Map();
+  for (const t of MODEL.tensors) {
+    const k = t.layer == null ? "other" : t.layer;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(t);
+  }
+  const keys = Array.from(groups.keys()).sort((a, b) => {
+    if (a === "other") return -1;
+    if (b === "other") return 1;
+    return a - b;
+  });
+  const rowH = Math.max(7, Math.min(24, Math.floor(620 / keys.length)));
+  const gap = rowH > 12 ? 4 : 2;
+  const GUT = 76, W = 1000, top = 4;
+  const H = top + keys.length * (rowH + gap);
+  const rowTotal = k => groups.get(k).reduce((s, t) => s + val(t), 0);
+  const layerKeys = keys.filter(k => k !== "other");
+  // 以各层为准定比例，否则嵌入层会把所有层压成一条缝
+  const maxV = Math.max(...(layerKeys.length ? layerKeys : keys).map(rowTotal));
+  const svg = el("svg", { viewBox: `0 0 ${GUT + W + 60} ${H}`, "font-family": "ui-monospace, Menlo, Consolas, monospace" });
+  keys.forEach((k, i) => {
+    const y = top + i * (rowH + gap);
+    const ts = groups.get(k);
+    const tot = ts.reduce((s, t) => s + val(t), 0);
+    const lab = el("text", { x: GUT - 8, y: y + rowH / 2 + 3.5, "text-anchor": "end", "font-size": Math.min(11, rowH), fill: "#9aa1ad" });
+    lab.textContent = k === "other" ? "非层参数" : "layer " + k;
+    svg.append(lab);
+    svg.append(el("rect", { x: GUT, y, width: W, height: rowH, fill: "#e9ecef", rx: 1.5 }));
+    let x = GUT, clipped = false;
+    for (const t of ts) {
+      const w = (val(t) / maxV) * W;
+      if (x >= GUT + W) { clipped = true; break; }
+      svg.append(el("rect", {
+        x: x.toFixed(2), y, width: Math.min(Math.max(w, 0.5), GUT + W - x).toFixed(2), height: rowH,
+        fill: ROLES[t.role].c, stroke: w > 2 ? "#ffffff" : null, "stroke-width": w > 2 ? 0.5 : null,
+        "data-tip": tipOf(t),
+      }));
+      x += w;
+    }
+    if (x > GUT + W) clipped = true;
+    if (clipped) {   // 超出比例尺，画个断口
+      svg.append(el("path", {
+        d: `M${GUT + W - 7},${y} l7,0 l-4,${rowH / 2} l4,${rowH / 2} l-7,0 l4,${-rowH / 2} Z`,
+        fill: "#fdfdfd", stroke: "#9aa1ad", "stroke-width": 0.8,
+      }));
+    }
+    const v = el("text", { x: GUT + W + 6, y: y + rowH / 2 + 3.5, "font-size": Math.min(10, rowH), fill: "#9aa1ad" });
+    v.textContent = (metric === "bytes" ? fmtBytes(tot) : fmtNum(tot)) + (clipped ? " ↦" : "");
+    svg.append(v);
+  });
+  $("#layer").replaceChildren(svg);
+  $("#legend2").innerHTML = legendHTML(usedRoles());
+}
+
+/* --- view 4: table --- */
+const COLS = [
+  { k: "name", t: "张量名", num: false },
+  { k: "dtype", t: "dtype", num: false },
+  { k: "shape", t: "形状", num: false, f: t => "[" + t.shape.join(", ") + "]" },
+  { k: "numel", t: "参数量", num: true, f: t => fmtInt(t.numel) },
+  { k: "bytes", t: "字节数", num: true, f: t => fmtInt(t.bytes) },
+  { k: "bytesh", t: "大小", num: true, f: t => fmtBytes(t.bytes) },
+  { k: "localStart", t: "起始偏移", num: true, f: t => fmtInt(t.localStart) },
+  { k: "localEnd", t: "结束偏移", num: true, f: t => fmtInt(t.localEnd) },
+  { k: "shard", t: "分片", num: false },
+];
+let sortKey = "gStart", sortDir = 1;
+function renderTable() {
+  const cols = MODEL.shards.length > 1 ? COLS : COLS.filter(c => c.k !== "shard");
+  $("#tbl thead").innerHTML = "<tr>" + cols.map(c =>
+    `<th class="${c.num ? "num" : ""}" data-k="${c.k}">${c.t}${sortKey === c.k ? (sortDir > 0 ? " ↑" : " ↓") : ""}</th>`).join("") + "</tr>";
+  $$("#tbl th").forEach(th => th.addEventListener("click", () => {
+    const k = th.dataset.k === "bytesh" ? "bytes" : th.dataset.k;
+    if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+    renderTable();
+  }));
+  let rows = MODEL.tensors;
+  const q = $("#filter").value.trim();
+  if (q) {
+    let re = null;
+    try { re = new RegExp(q, "i"); } catch (e) { /* fall back to substring */ }
+    rows = rows.filter(t => re ? re.test(t.name) : t.name.includes(q));
+  }
+  rows = rows.slice().sort((a, b) => {
+    const x = a[sortKey], y = b[sortKey];
+    return (typeof x === "string" ? natcmp(x, y) : x - y) * sortDir;
+  });
+  $("#tbl tbody").innerHTML = rows.map(t => "<tr>" + cols.map(c =>
+    `<td class="${c.num ? "num" : ""}" style="${c.k === "name" ? "color:" + ROLES[t.role].c : ""}">${esc(c.f ? c.f(t) : t[c.k])}</td>`).join("") + "</tr>").join("")
+    + `<tr><td colspan="${cols.length}" style="color:var(--muted)">共 ${rows.length} 行</td></tr>`;
+}
+
+/* --- view 5: raw json --- */
+function rawHeaderObject() {
+  return RAW_HEADERS.length === 1
+    ? RAW_HEADERS[0].json
+    : Object.fromEntries(RAW_HEADERS.map(h => [h.label, h.json]));
+}
+function renderJSON() {
+  const text = JSON.stringify(rawHeaderObject(), null, 2);
+  $("#json").textContent = text.length > 4e6 ? text.slice(0, 4e6) + "\n… 太长，已截断" : text;
+  $("#jsonMeta").textContent = `${fmtBytes(new Blob([text]).size)}，${MODEL.tensors.length} 个张量`;
+}
+
+/* ---------- export ---------- */
+function activeSVG() {
+  const v = $("#viewTabs button.on").dataset.v;
+  return $(`#v-${v} svg`);
+}
+function svgText(svg) {
+  const c = svg.cloneNode(true);
+  c.setAttribute("xmlns", SVGNS);
+  const vb = c.getAttribute("viewBox").split(" ");
+  c.setAttribute("width", vb[2]); c.setAttribute("height", vb[3]);
+  c.insertBefore(el("rect", { x: 0, y: 0, width: vb[2], height: vb[3], fill: "#ffffff" }), c.firstChild);
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(c);
+}
+function download(name, blob) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function exportSVG() {
+  const svg = activeSVG();
+  if (svg) download("safetensors-layout.svg", new Blob([svgText(svg)], { type: "image/svg+xml" }));
+}
+function exportPNG() {
+  const svg = activeSVG();
+  if (!svg) return;
+  const vb = svg.getAttribute("viewBox").split(" ");
+  const scale = 2, img = new Image();
+  img.onload = () => {
+    const cv = document.createElement("canvas");
+    cv.width = vb[2] * scale; cv.height = vb[3] * scale;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    cv.toBlob(b => download("safetensors-layout.png", b));
+  };
+  img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgText(svg))));
+}
+
+/* ---------- events ---------- */
+$("#srcTabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  $$("#srcTabs button").forEach(x => x.classList.toggle("on", x === b));
+  for (const p of ["hf", "local", "url"]) $("#p-" + p).hidden = p !== b.dataset.p;
+});
+function showView(v) {
+  $$("#viewTabs button").forEach(x => x.classList.toggle("on", x.dataset.v === v));
+  for (const k of ["ribbon", "tree", "layer", "table", "json"]) $("#v-" + k).hidden = k !== v;
+}
+$("#viewTabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (b) showView(b.dataset.v);
+});
+$("#cancel").addEventListener("click", () => { if (ABORT) ABORT.abort(); });
+$("#site").addEventListener("change", () => { $("#siteCustomWrap").hidden = $("#site").value !== "__custom"; });
+$$(".presets button").forEach(b => b.addEventListener("click", () => {
+  $("#repo").value = b.dataset.repo;
+  $("#goHF").click();
+}));
+$("#goHF").addEventListener("click", () => run(loadHF));
+$("#goURL").addEventListener("click", () => run(loadURL));
+$("#url").addEventListener("keydown", e => { if (e.key === "Enter") $("#goURL").click(); });
+$("#repo").addEventListener("keydown", e => { if (e.key === "Enter") $("#goHF").click(); });
+$("#file").addEventListener("change", e => { if (e.target.files.length) run(() => loadFiles(e.target.files)); });
+$("#rows").addEventListener("input", () => { $("#rowsN").textContent = $("#rows").value; if (MODEL) renderRibbon(); });
+$("#stroke").addEventListener("change", () => { if (MODEL) renderRibbon(); });
+$("#treeMetric").addEventListener("change", renderTree);
+$("#layerMetric").addEventListener("change", renderLayer);
+$("#filter").addEventListener("input", renderTable);
+$$("[data-export]").forEach(b => b.addEventListener("click", () => b.dataset.export === "svg" ? exportSVG() : exportPNG()));
+$("#csv").addEventListener("click", () => {
+  const head = "name,dtype,shape,params,bytes,start,end,shard\n";
+  const body = MODEL.tensors.map(t =>
+    [t.name, t.dtype, '"[' + t.shape.join(" ") + ']"', t.numel, t.bytes, t.localStart, t.localEnd, t.shard].join(",")).join("\n");
+  download("tensors.csv", new Blob([head + body], { type: "text/csv" }));
+});
+$("#dlJson").addEventListener("click", () => {
+  download("header.json", new Blob([JSON.stringify(rawHeaderObject(), null, 2)], { type: "application/json" }));
+});
+$("#saveToken").addEventListener("change", e => {
+  if (e.target.checked) localStorage.setItem("hf_token", $("#token").value);
+  else localStorage.removeItem("hf_token");
+});
+$("#token").addEventListener("input", () => { if ($("#saveToken").checked) localStorage.setItem("hf_token", $("#token").value); });
+(function restore() {
+  const t = localStorage.getItem("hf_token");
+  if (t) { $("#token").value = t; $("#saveToken").checked = true; }
+  const u = new URLSearchParams(location.search);
+  if (u.get("repo")) { $("#repo").value = u.get("repo"); }
+  if (u.get("rev")) { $("#rev").value = u.get("rev"); }
+  if (u.get("site")) { $("#site").value = u.get("site"); }
+  if (u.get("view")) showView(u.get("view"));
+  if (u.get("url")) {
+    $("#url").value = u.get("url");
+    $$("#srcTabs button").forEach(x => x.classList.toggle("on", x.dataset.p === "url"));
+    for (const p of ["hf", "local", "url"]) $("#p-" + p).hidden = p !== "url";
+    $("#goURL").click();
+  } else if (u.get("repo")) $("#goHF").click();
+})();
+
+/* tooltip */
+const tip = $("#tip");
+document.addEventListener("mousemove", e => {
+  const host = e.target.closest ? e.target.closest("[data-tip]") : null;
+  if (!host) { tip.style.display = "none"; return; }
+  tip.textContent = host.getAttribute("data-tip");
+  tip.style.display = "block";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 16;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 16;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+</script>
+</body>
+</html>

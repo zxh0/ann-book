@@ -162,3 +162,62 @@
 .book-toc a {
   font-weight: 500;
 }
+
+/* /tools 页的工具卡片：没有封面图，比首页的书卡片素一些 */
+.tool-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0 0;
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.tool-card:hover {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: var(--vp-shadow-2);
+}
+
+.tool-card h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--vp-c-brand-1);
+}
+
+.tool-card p {
+  margin: 0.5rem 0 0;
+  text-align: left;
+}
+
+.tool-card-blurb {
+  font-size: 0.92em;
+  line-height: 1.7;
+}
+
+.tool-card-note {
+  color: var(--vp-c-text-3);
+  font-size: 0.85em;
+}
+
+/* 「打开工具 →」贴在卡片底部，几张卡片高度不一样时也能对齐 */
+.tool-card-open {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  color: var(--vp-c-brand-1);
+  font-size: 0.88em;
+  font-weight: 500;
+}

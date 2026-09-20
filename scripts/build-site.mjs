@@ -1,5 +1,5 @@
-// 从 notes/ 和 books/ 生成 VitePress 站点内容。
-// notes/*.md 和 books/*/chapters/*.md 是唯一的内容来源，
+// 从 notes/、books/ 和 tools/ 生成 VitePress 站点内容。
+// notes/*.md、books/*/chapters/*.md 和 tools/*/ 是唯一的内容来源，
 // docs/notes/、docs/ann4us/、docs/toyllm/、docs/public/、sidebar.json 都是生成物。
 import fs from 'node:fs'
 import path from 'node:path'
@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const notesDir = path.join(root, 'notes')
 const booksDir = path.join(root, 'books')
+const toolsDir = path.join(root, 'tools')
 const docsDir = path.join(root, 'docs')
 const outDir = path.join(docsDir, 'notes')
 const publicDir = path.join(docsDir, 'public')
@@ -37,6 +38,20 @@ const BOOKS = [
     promote: false,
     cover: { from: path.join('aigc', 'front.png'), name: 'toyllm.png' },
     published: new Set(['ch01_overview.md', 'ch02_weights.md', 'ch03_tokenizer.md']),
+  },
+]
+
+// 工具：tools/<目录>/ 下的纯静态单页，整个目录原样拷到 docs/public/tools/<目录>/，
+// 站点地址就是 /tools/<目录>/。加一个工具 = 放一个目录进 tools/，再往这里加一行。
+// README.md 是写给仓库读者的，不上站。
+const TOOLS = [
+  {
+    dir: 'safetensors-viewer',
+    title: 'safetensors 参数布局查看器',
+    blurb:
+      '给它一个 HF 模型仓库名或者 model.safetensors 的地址，它把模型里每个张量在文件中的字节排布画出来：' +
+      '内存布局、结构树、逐层对比、张量表、原始 JSON 头五个视图，前三个能导出 SVG 和 PNG。',
+    note: '只下载文件头，通常几十 KB。纯前端，模型数据不经过任何服务器。',
   },
 ]
 
@@ -232,6 +247,13 @@ fs.writeFileSync(
       // 首页要用：最新的几篇笔记（倒序）
       latest: [...notes].reverse().map(({ date, title, link }) => ({ date, title, link })),
       books,
+      // 首页和 /tools 页要用
+      tools: TOOLS.map(({ dir, title, blurb, note }) => ({
+        title,
+        blurb,
+        note,
+        link: `/tools/${dir}/`,
+      })),
       rewrites,
     },
     null,
@@ -249,9 +271,22 @@ for (const book of BOOKS) {
   fs.copyFileSync(path.join(booksDir, book.dir, book.cover.from), path.join(publicDir, book.cover.name))
 }
 
+const toolsOutDir = path.join(publicDir, 'tools')
+fs.rmSync(toolsOutDir, { recursive: true, force: true })
+for (const tool of TOOLS) {
+  const src = path.join(toolsDir, tool.dir)
+  if (!fs.existsSync(path.join(src, 'index.html')))
+    throw new Error(`tools/${tool.dir}/ 下没有 index.html`)
+  fs.cpSync(src, path.join(toolsOutDir, tool.dir), {
+    recursive: true,
+    filter: (f) => !f.endsWith('.DS_Store') && !f.endsWith('README.md'),
+  })
+}
+
 console.log(
   `生成 ${notes.length} 篇笔记 -> docs/notes/，` +
     BOOKS.map(
       (b) => `${books[b.key].sidebar.length}/${books[b.key].toc.length} 章正文 -> docs/${b.route}/`
-    ).join('，')
+    ).join('，') +
+    `，${TOOLS.length} 个工具 -> docs/public/tools/`
 )

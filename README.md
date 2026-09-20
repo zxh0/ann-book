@@ -7,6 +7,10 @@
 * [人人能懂的人工神经网络](books/ann4us/Book.md)（WIP，[在线版](https://zxh0.github.io/ann-book/ann4us)）
 * [自己动手写LLM推理引擎](books/toyllm/README.md)（WIP，[在线版](https://zxh0.github.io/ann-book/toyllm)）
 
+工具：
+
+* [safetensors 参数布局查看器](tools/safetensors-viewer/)（[在线版](https://zxh0.github.io/ann-book/tools/safetensors-viewer/)）
+
 笔记：
 
 * [图解DeepSeek-V4(Pro)核心公式](notes/2026-06-25-DSv4.md)

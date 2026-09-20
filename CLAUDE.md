@@ -11,6 +11,7 @@ A Chinese-language writing repo holding **two books in progress** plus a series 
 | `books/ann4us/` | 《人人能懂的人工神经网络》 — accessible intro to neural networks for general readers, tracing AI history from the 1940s neuron to Transformers | `books/ann4us/CLAUDE.md` |
 | `books/toyllm/` | 《自己动手写LLM推理引擎》 (title provisional) — hand-write an LLM inference engine for SmolLM2-135M on CPU | `books/toyllm/CLAUDE.md`, plus `books/toyllm/code/CLAUDE.md` |
 | `notes/` | standalone 图解 articles, `YYYY-MM-DD-Slug.md` | — |
+| `tools/` | standalone single-file web tools, one directory each | — |
 
 **Read the relevant book's own CLAUDE.md before working on it.** Each carries that book's layout, build commands, chapter status, and local conventions. This file holds only what is true across the whole repo.
 
@@ -21,6 +22,12 @@ This directory **is** the git root (`github.com/zxh0/ann-book`), and `main` is t
 Standalone deep-dive articles, published separately from the books. One Markdown file per article, named `YYYY-MM-DD-Slug.md` by publication date, with draw.io sources in `notes/draw/` and exported assets in `notes/images/<slug>/`. `README.md` at the repo root lists them all and is the index to keep in sync when adding one.
 
 These are **hand-written by the author and deliberately not AI-polished**. When editing them, limit changes to what was asked (e.g. a typo fix) and preserve the author's voice.
+
+## tools/
+
+Self-contained front-end tools, one directory per tool, each an `index.html` with no build step and no dependencies plus a `README.md` explaining how it works. `scripts/build-site.mjs` copies every directory listed in its `TOOLS` table to `docs/public/tools/<dir>/`, so the site address is `/tools/<dir>/` and the landing page is `docs/tools.md`. The `README.md` is repo-only and is not copied to the site. **Adding a tool means dropping a directory into `tools/` and adding one entry to `TOOLS`** (title, blurb, note) — the `/tools` page and the homepage blurb read that entry from `sidebar.json`. Keep `README.md` at the repo root in sync too.
+
+The tool pages live outside VitePress, so links to them need `withBase()` in an explicit `<a target="_blank">`: a plain Markdown link to `/tools/...` does not get the `/ann-book/` base prefix, because VitePress only rebases links that resolve to a real page.
 
 ## Notation Conventions
 
