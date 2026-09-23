@@ -27,4 +27,5 @@
 * [图解N-gram Embedding](notes/2026-08-28-NgE.md)
 * [图解LLM（大白话版）](notes/2026-08-30-LLM.md)
 * [图解LLM并行策略（基础篇）](notes/2026-09-06-Paral.md)
+* [图解Compressed Sparse Attention 2](notes/2026-09-23-CSA2.md)
 
