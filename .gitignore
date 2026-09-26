@@ -10,3 +10,5 @@ docs/public/
 docs/.vitepress/sidebar.json
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+__pycache__/

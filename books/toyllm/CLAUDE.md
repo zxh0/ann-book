@@ -23,9 +23,9 @@ Three standing conventions from the preface that the manuscript must honour:
 | `chapters/_preface.md` | 前言 — motivation, target reader, reading conventions, tech choices, TOC. Also absorbed the old `ch00.md` (准备). Sorts before `ch01` thanks to the `_` prefix. |
 | `chapters/chNN_slug.md` | manuscript source, one file per chapter, `chNN` matches 第N章. Twelve chapters, `ch01`–`ch12`. |
 | `images/chNN/` | exported PNGs, referenced from chapters as `../images/chNN/...` inside `<img ... style="zoom:50%;">` tags |
-| `draw/chNN.drawio` | draw.io sources for those PNGs (only ch01, ch02 exist so far) |
+| `draw/chNN.drawio` | draw.io sources for those PNGs (ch01–ch04 exist so far) |
 | `code/` | one uv project holding two code trees — see `code/CLAUDE.md` |
-| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** Only `ch01/` is written so far. |
+| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** `ch01/`–`ch04/` are written so far. |
 | `code/poc/` | the original proof of concept. **Frozen reference, not the book's code.** |
 | `code/models/`, `code/reference/` | weights and baseline tensors, shared by both trees, gitignored |
 
@@ -87,7 +87,7 @@ Downloads (weights, `uv sync`) must bypass Claude Code's proxy — prefix with
 
 The repo-wide rules live in `../../CLAUDE.md` — Simplified Chinese prose with English identifiers, no space between CJK and Latin/digits, full-width quotes, no em-dashes, and the notation convention (vectors **bold lowercase**, matrices plain uppercase). Only what is specific to this book is listed here.
 
-- **Em-dash cleanup is in progress**: 147 `——` remain in ch04–ch12 and `_preface.md`, from before the author's voice pass. Clear them as each chapter gets rewritten rather than in one sweep. (ch01–ch03 are clean.)
+- **Em-dash cleanup is in progress**: 129 `——` remain in ch05–ch12 and `_preface.md`, from before the author's voice pass. Clear them as each chapter gets rewritten rather than in one sweep. (ch01–ch04 are clean.)
 - **The model is always `SmolLM2`, never `SmolLM`.** This typo has recurred several times; grep for `SmolLM[^2]` after editing.
 - **Large integers fall into three classes**, and ch02/ch03 already follow this:
   - *Identifiers* never take a separator, because they say *which one*, not *how many*: token ids (46119), line numbers (第49347行), merge ranks (45867), code points (`U+0120`).

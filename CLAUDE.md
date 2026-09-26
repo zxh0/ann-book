@@ -77,3 +77,13 @@ Not every rule suits every area, so the exceptions live in one file — `.claude
 Each `check.py` has a `fix.py` beside it that auto-fixes the mechanical rules. Both take `--dry-run`. `check-prose`'s fixer honours per-area exemptions; `check-formulas`'s rewrites in one pass, so it skips any file with a formula rule switched off rather than half-applying. **Always `--dry-run` first on `notes/`** — those are hand-written.
 
 Run both after editing any chapter, before committing.
+
+### shrink-images
+
+A third skill, also repo-wide, compresses the manuscript's PNGs in place — for after new illustrations land in `images/chNN/` or `aigc/`, before committing:
+
+```bash
+uv run --no-project .claude/skills/shrink-images/scripts/shrink.py --dry-run .
+```
+
+It flattens alpha onto white and strips metadata (lossless), then quantizes to an 8-bit palette only when the measured mean error says the image is line art (draw.io exports land at 0.000–0.055, AI cover art at 3.5). draw.io exports shrink by 70–90%, AI 章首图 by ~25% with pixels unchanged. It honours `lint-scope.json`'s `exclude`, so `docs/` and `node_modules/` stay out of it, and it refuses to rewrite a file for less than 10% / 1 KB, to keep already-compressed images out of git as new blobs. It needs Pillow, declared inline (PEP 723) so `uv run` builds the env — the system `python3` is 3.9 with no Pillow. Details and the calibration table are in its `SKILL.md`; run `npm run prepare:site` afterwards so `docs/public/` picks the new files up.
