@@ -1,6 +1,6 @@
 # 分词（Tokenization）
 
-![ch03](../aigc/ch03.png)
+![cover](../aigc/ch03.png)
 
 在第二章里，我们初步认识了HF模型相关的文件。我们通过Shell脚本下载了SmolLM2的全部文件，并且写了Python脚本，分析了模型权重的分布。第二章的重点是`model.safetensors`文件，我们搞清楚了Safetensors文件的格式，以及元数据和模型权重如何分布。
 

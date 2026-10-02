@@ -1,0 +1,77 @@
+"""第五章 · 模型的规格说明
+
+第二章介绍那十个文件的时候说过，`config.json`就是第一章讲的那份规格说明，
+704个字节，二十来个字段，记录着模型的架构和各种超参数。当时我们说「等到后面
+的章节要用到它时，再一点一点介绍」，现在就是那个时候：RMSNorm要用里面的
+`rms_norm_eps`。
+
+一个`Config`对象就是这个JSON文件。这里只给用得上的字段起了名字，其余的都留在
+`raw`里，后面章节用到哪个，就在这里补一个名字，顺便讲清楚它是干什么的。
+
+注意这个类**只读不算**：它不碰权重，也不做任何计算，就是把一份配置搬进内存。
+`Weights`管数据，`Config`管形状和超参数，`Model`管计算。
+
+运行：
+    cd code
+    uv run python book/ch05/config.py
+"""
+
+import json
+
+from weights import MODEL_DIR
+
+
+class Config:
+    """SmolLM2的规格说明，读自`config.json`。"""
+
+    def __init__(self, model_dir=MODEL_DIR):
+        with open(model_dir / "config.json", encoding="utf-8") as f:
+            self.raw = json.load(f)
+
+        # 已经讲过的几个。第二章在元数据里见过576和30，第三章数过49152，
+        # 第四章靠tie_word_embeddings解释了为什么找不到lm_head.weight。
+        self.hidden_size = self.raw["hidden_size"]                    # 576
+        self.num_hidden_layers = self.raw["num_hidden_layers"]        # 30
+        self.vocab_size = self.raw["vocab_size"]                      # 49152
+        self.tie_word_embeddings = self.raw["tie_word_embeddings"]    # true
+
+        # 这一章新要的那个。RMSNorm算均方根时要加上它，防止除以0。
+        self.rms_norm_eps = self.raw["rms_norm_eps"]                  # 1e-05
+
+    def __repr__(self):
+        return (f"Config(hidden_size={self.hidden_size}, "
+                f"num_hidden_layers={self.num_hidden_layers}, "
+                f"vocab_size={self.vocab_size}, "
+                f"rms_norm_eps={self.rms_norm_eps})")
+
+
+def main():
+    cfg = Config()
+
+    print(f"{'字段':<28}{'值':<22}这本书在哪用到它")
+    print("-" * 78)
+    # 用得上的排在前面，剩下的按原顺序跟在后面，让读者看一眼整个文件的全貌。
+    notes = {
+        "hidden_size":           "第四章，词嵌入的维度",
+        "num_hidden_layers":     "第五章，Decoder块堆几层",
+        "vocab_size":            "第三章，词表大小",
+        "tie_word_embeddings":   "第四章，权重共享",
+        "rms_norm_eps":          "第五章，RMSNorm",
+        "num_attention_heads":   "第六章",
+        "num_key_value_heads":   "第六章，GQA",
+        "intermediate_size":     "第八章，FFN",
+        "rope_theta":            "第七章，RoPE",
+        "rope_interleaved":      "第七章，RoPE的配对方式",
+        "max_position_embeddings": "第七章",
+        "eos_token_id":          "第十章，生成循环靠它停下来",
+    }
+    named = [k for k in notes if k in cfg.raw]
+    rest = [k for k in cfg.raw if k not in notes]
+    for k in named + rest:
+        print(f"{k:<28}{str(cfg.raw[k]):<22}{notes.get(k, '')}")
+
+    print(f"\n一共{len(cfg.raw)}个字段，这一章只用到`rms_norm_eps`一个。")
+
+
+if __name__ == "__main__":
+    main()

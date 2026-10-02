@@ -1,6 +1,6 @@
 # LLM推理引擎概览
 
-![ch01](../aigc/ch01.png)
+![cover](../aigc/ch01.png)
 
 《自己动手写LLM推理引擎》这本书的主要目的，并不是教你如何写出像[vLLM](https://github.com/vllm-project/vllm)那样的工业级推理引擎，而是带你理解LLM（大语言模型）推理引擎的基本原理。或者更准确地说，是想通过手写推理引擎，帮你理解LLM的工作原理。
 

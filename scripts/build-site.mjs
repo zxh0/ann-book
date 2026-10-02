@@ -42,6 +42,7 @@ const BOOKS = [
       'ch02_weights.md',
       'ch03_tokenizer.md',
       'ch04_embedding.md',
+      'ch05_norm.md',
     ]),
   },
 ]
