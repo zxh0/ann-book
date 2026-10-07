@@ -1,5 +1,13 @@
 # 采样（Sampling）
 
+![cover](../aigc/ch10.png)
+
+todo
+
+<img src="../images/ch10/progress.png" alt="Progress" style="zoom:50%;" />
+
+
+
 > **本章代码**：造 Sampler，并把总览图上那条 `append to` 虚线真正接上。
 >
 > - **造哪个框**：`samp.png` 的 Sampler，以及绕回 Token IDs 的那条虚线

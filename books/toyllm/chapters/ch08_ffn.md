@@ -2,6 +2,12 @@
 
 ![cover](../aigc/ch08.png)
 
+todo
+
+<img src="../images/ch08/progress.png" alt="Progress" style="zoom:50%;" />
+
+
+
 > **本章代码**：填上最后一个空位 FFN，骨架填满；然后堆满 30 层、接通全图。**这一章同时是组装章。**
 >
 > - **造哪个框**：`ffn.png` 的 FFN+Residual

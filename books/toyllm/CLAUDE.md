@@ -23,9 +23,9 @@ Three standing conventions from the preface that the manuscript must honour:
 | `chapters/_preface.md` | 前言 — motivation, target reader, reading conventions, tech choices, TOC. Also absorbed the old `ch00.md` (准备). Sorts before `ch01` thanks to the `_` prefix. |
 | `chapters/chNN_slug.md` | manuscript source, one file per chapter, `chNN` matches 第N章. Twelve chapters, `ch01`–`ch12`. |
 | `images/chNN/` | exported PNGs, referenced from chapters as `../images/chNN/...` inside `<img ... style="zoom:50%;">` tags |
-| `draw/chNN.drawio` | draw.io sources for those PNGs (ch01–ch05 exist so far) |
+| `draw/chNN.drawio` | draw.io sources for those PNGs (ch01–ch06 exist so far) |
 | `code/` | one uv project holding two code trees — see `code/CLAUDE.md` |
-| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** `ch01/`–`ch05/` are written so far. |
+| `code/book/` | the book's code: one directory per chapter, `ch01/`…`ch12/`. **New work goes here.** `ch01/`–`ch08/`, `ch10/` and `ch11/` are written so far (ch09 is theory only, so `ch10/` copies `ch08/`). In `ch11/`, `NO_CACHE` must reproduce ch10 bit for bit, and the engine feeds `ids[cache.length:]` instead of branching on the cache. |
 | `code/poc/` | the original proof of concept. **Frozen reference, not the book's code.** |
 | `code/models/`, `code/reference/` | weights and baseline tensors, shared by both trees, gitignored |
 

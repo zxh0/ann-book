@@ -1,5 +1,13 @@
 # KV Cache
 
+![cover](../aigc/ch11.png)
+
+TODO
+
+<img src="../images/ch11/progress.png" alt="Progress" style="zoom:50%;" />
+
+
+
 > **本章代码**：上一章接通的那个循环，每一轮都在重算全部历史。这一章把它治好。
 >
 > - **造哪个框**：**不新增任何框**。改的是那条 `append to` 虚线怎么走

@@ -1,5 +1,15 @@
 # 残差连接（Residual Connections）
 
+![cover](../aigc/ch09.png)
+
+todo
+
+<img src="../images/ch09/progress.png" alt="Progress" style="zoom:50%;" />
+
+todo
+
+> 
+>
 > **本章代码**：把注意力和 FFN 用一条旁路包起来，Decoder Block 至此完整。
 >
 > - **造哪个框**：`rc.png` 里那两个 `+Residual`——第一章说过，它在数据流向图上画不出来

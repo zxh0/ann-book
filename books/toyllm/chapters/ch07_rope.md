@@ -2,6 +2,18 @@
 
 ![cover](../aigc/ch07.png)
 
+todo
+
+
+
+<img src="../images/ch07/progress.png" alt="Progress" style="zoom:50%;" />
+
+
+
+
+
+> 
+>
 > **本章代码**：补上 RoPE，注意力才算完整。
 >
 > - **造哪个框**：`rope.png` 的 RoPE，位置在 norm 之后、attention 之前

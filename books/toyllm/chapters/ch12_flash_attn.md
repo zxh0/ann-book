@@ -1,5 +1,9 @@
 # FlashAttention
 
+![cover](../aigc/ch12.png)
+
+
+
 > **本章代码**：分块 + 在线 softmax，全程不实体化那个 T×T 的注意力矩阵。
 >
 > - **造哪个框**：**不新增任何框**。替换第六、七章 attention 内部的算法

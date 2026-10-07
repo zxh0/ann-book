@@ -2,6 +2,20 @@
 
 ![cover](../aigc/ch06.png)
 
+todo
+
+
+
+<img src="../images/ch06/progress.png" alt="Progress" style="zoom:50%;" />
+
+
+
+
+
+
+
+
+
 > **本章代码**：往骨架的第一个空位里填注意力。分四步走——单头 → 多头 → GQA → 因果掩码。
 >
 > - **造哪个框**：`attn.png` 的 Attention+Residual
