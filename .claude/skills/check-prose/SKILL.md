@@ -44,7 +44,8 @@ version: 1.1.0
 {
   "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md", "node_modules/**", "docs/**"],
   "scopes": [
-    {"path": "notes/**", "disable": ["符号记法"]}
+    {"path": "notes/**", "disable": ["符号记法"]},
+    {"path": "books/toyllm/**", "disable": ["符号记法/粗体大写"]}
   ]
 }
 ```
@@ -152,7 +153,7 @@ python3 scripts/fix.py books/
 
 | 模式 | 判定 |
 |---|---|
-| `\mathbf{X}` / `\boldsymbol{X}`（首字母大写拉丁字母） | 粗体大写 → 违规，应为非粗体大写 |
+| `\mathbf{X}` / `\boldsymbol{X}`（首字母大写拉丁字母） | 粗体大写 → 违规，应为非粗体大写。**这一条单独成子规则 `符号记法/粗体大写`**，可以按区域关掉：`books/toyllm/` 用 Goodfellow 那一套（粗体大写=矩阵），已在 `lint-scope.json` 里豁免 |
 | `\vec{...}` | 箭头向量 → 违规，应为 `\mathbf{}` |
 | `\boldsymbol{x}`（拉丁字母） | 应统一为 `\mathbf{}` |
 

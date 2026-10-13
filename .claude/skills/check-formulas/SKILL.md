@@ -36,7 +36,7 @@ python3 scripts/fix.py --dry-run notes/2026-07-05-PE.md
 python3 scripts/fix.py books/ann4us/chapters/
 ```
 
-目录会递归展开 `*.md`，自动跳过点目录和生成的 `Book.md`。
+目录会递归展开 `*.md`，自动跳过点目录和生成的 `Book.md`。` ``` ` 代码块里的内容不检查也不修改：JSON、终端输出里的 `$` 只是普通字符，不是公式。同理，一行里只有一个 `$`、没有配对的，也不当作公式处理。
 若某文件在 `lint-scope.json` 里关掉了任一公式规则，`fix.py` 会整体跳过它并提示手工处理。
 
 如果需要人工处理，按以下步骤：
@@ -244,6 +244,37 @@ re.compile(r'(?<!\\)([a-zA-Z]{2,})\(')
 - 已有 `\` 前缀的命令（`\max`、`\mathrm{...}` 等）不触发
 
 对每处违规，将 `funcname(` 改为 `\mathrm{funcname}(`。
+
+### 行首方括号（bracket after line break）
+
+在块级公式里，`[` 不能紧跟在 `\\` 或 `\begin{...}` 后面。LaTeX 会把它当成可选参数：`\\[2pt]` 表示行距，`\begin{aligned}[t]` 表示对齐方式。于是 `[...]` 整段被“吃掉”，那一行渲染出来只剩等号右边，上面还空出一大块。这类错误不报错，只是显示不对，最常见于把向量列表写在多行公式的行首。
+
+第六章的大公式就踩过这个坑：拆分那一组的第一行紧跟在 `\begin{aligned}` 后面，GitHub 上只显示出 `= Q`。
+
+**违规示例：**
+```
+$$
+\begin{aligned}
+[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h] &= \mathbf{Q} \\
+[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_h] &= \mathbf{K}
+\end{aligned}
+$$
+```
+
+**正确示例（任选其一）：**
+```
+\left[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h\right] &= \mathbf{Q} \\
+{}[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_h] &= \mathbf{K}
+```
+
+`\left[...\right]` 读起来更清楚，括号还会随内容自动调高，手工修改时优先用它；`{}` 是一个空组，渲染出来什么都没有，只是让 `[` 不再紧跟在换行后面，`fix.py` 自动修复用的是这一种。
+
+检测范围：
+
+- 行首是 `[`，且上一个非空行以 `\\` 或 `\begin{...}` 结尾
+- 同一行里的 `\\ [` 或 `\begin{...}[`
+
+真正的可选参数不会触发：`\\[2pt]` 这类带长度单位的（pt、em、ex、mm、cm、in、mu），以及 `\begin{aligned}[t]` 里的 `t`、`b`、`c`。
 
 <!-- TODO: 后续可继续补充其他规则 -->
 

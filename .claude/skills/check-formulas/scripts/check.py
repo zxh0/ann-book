@@ -38,9 +38,26 @@ def iter_md(paths, include_generated=False):
     return uniq
 
 
+def mask_fences(lines):
+    """Blank out the inside of ``` code blocks, keeping line numbers.
+
+    A $ in JSON or shell output is just a character, not a formula. The ```
+    lines themselves stay, so a $$ right after a code block still counts as
+    having no blank line above it.
+    """
+    out, in_fence = [], False
+    for line in lines:
+        if line.lstrip().startswith('```'):
+            in_fence = not in_fence
+            out.append(line)
+        else:
+            out.append('\n' if in_fence else line)
+    return out
+
+
 def check(path):
     with open(path, encoding="utf-8") as f:
-        lines = f.readlines()
+        lines = mask_fences(f.readlines())
 
     issues = []
 
@@ -144,7 +161,48 @@ def check(path):
                         f"函数名 `{m.group(1)}` 未用 \\mathrm{{}} 包裹",
                         line.rstrip()))
 
+    # Rule 7: a "[" right after \\ or \begin{...} is read as an optional argument
+    for i, text in bracket_after_break(lines):
+        issues.append((i, "行首方括号",
+            r"[ 紧跟在 \\ 或 \begin{...} 后面，会被当成可选参数吞掉，改成 \left[...\right] 或在前面加 {}",
+            text))
+
     return issues
+
+
+# \\[2pt] and \begin{aligned}[t] are the legitimate uses of that optional argument.
+_OPT_ARG_OK = re.compile(r'\[\s*(-?[\d.]+\s*(pt|em|ex|mm|cm|in|mu)|[tbc])\s*\]')
+_BREAK_END = re.compile(r'(\\\\|\\begin\{[^}]*\})\s*$')
+_BREAK_MID = re.compile(r'(\\\\|\\begin\{[^}]*\})\s*(?=\[)')
+
+
+def bracket_after_break(lines):
+    """Yield (lineno, text) for every "[" that LaTeX would take as an optional argument.
+
+    Two shapes, both inside $$...$$ only:
+      - a line starting with "[" whose previous non-blank line ends with \\ or \begin{...}
+      - "\\[" or "\begin{...}[" on the same line
+    A real optional argument such as \\[2pt] or \begin{aligned}[t] is left alone.
+    """
+    in_block = False
+    prev = ''
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if stripped == '$$':
+            in_block = not in_block
+            prev = ''
+            continue
+        if not in_block or not stripped:
+            continue
+        hits = []
+        if stripped.startswith('[') and _BREAK_END.search(prev) and not _OPT_ARG_OK.match(stripped):
+            hits.append(line.rstrip())
+        for m in _BREAK_MID.finditer(line):
+            if not _OPT_ARG_OK.match(line, m.end()):
+                hits.append(line.rstrip())
+        if hits:
+            yield i, hits[0]
+        prev = stripped
 
 
 def main():

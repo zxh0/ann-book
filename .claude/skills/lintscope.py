@@ -114,4 +114,8 @@ def keep(issues, path, rule_index=1, all_rules=False):
     off = disabled_rules(path)
     if not off:
         return issues
-    return [i for i in issues if i[rule_index] not in off]
+    # 关掉「符号记法」也就关掉了它的子规则「符号记法/粗体大写」
+    def _off(rule):
+        return rule in off or rule.split("/")[0] in off
+
+    return [i for i in issues if not _off(i[rule_index])]

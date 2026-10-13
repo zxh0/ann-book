@@ -40,6 +40,8 @@ Repo-wide, both books and the notes:
 
 Bold is reserved for vectors, so bold uppercase (`\mathbf{W}`) and arrow vectors (`\vec{x}`) are both wrong. Enforced by the `check-prose` rule 符号记法统一.
 
+**Exception: `books/toyllm/` writes matrices as bold uppercase** (`\mathbf{W}`, `\mathbf{Q}`), following Goodfellow's *Deep Learning*; non-bold means a plain quantity regardless of case. The sub-rule 符号记法/粗体大写 is switched off there in `.claude/lint-scope.json`, and the full convention is in `.claude/skills/polish-prose/SKILL.md`.
+
 ## Content Language
 
 Prose is **Simplified Chinese**; code, identifiers, filenames, and diagram names are English. No space between CJK and Latin/digits (`SmolLM2模型`, not `SmolLM2 模型`); full-width Chinese quotes `“”`, never `""`. The author dislikes em-dashes (`——`) — use a comma, a colon, or split the sentence.

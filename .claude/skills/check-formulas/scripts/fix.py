@@ -9,6 +9,10 @@ Fixes applied:
   - \tag inside \begin{aligned} → moved after \end{aligned}, multiple tags merged
   - \tag on bare block formula → wrapped with \begin{aligned}
   - \operatorname → \mathrm
+  - "[" right after \\ or \begin{...} → prefixed with {} so it is not read as an optional argument
+
+Fenced ``` code blocks are left untouched, and a lone $ with no closing $
+on the same line is not treated as a formula.
 
 Usage: python fix.py [--dry-run] [--all-rules] <file.md | dir> [more...]
 
@@ -70,6 +74,10 @@ def _fix_line_inline_spacing(line):
                 # $$ on a content line — pass through unchanged
                 out.append('$$')
                 i += 2
+            elif line.find('$', i + 1) == -1:
+                # no closing $ on this line: not a formula, keep the rest verbatim
+                out.append(line[i:])
+                break
             else:
                 # opening $: add space before if needed
                 if out and out[-1] not in (' ', '\t'):
@@ -158,6 +166,9 @@ def _fix_line_bare_functions(line):
                         break
                     formula_chars.append(line[i])
                     i += 1
+                else:
+                    # no closing $ on this line: not a formula, keep the rest verbatim
+                    out.append(''.join(formula_chars))
         else:
             out.append(line[i])
             i += 1
@@ -179,7 +190,67 @@ def fix_bare_functions(content):
     return '\n'.join(result)
 
 
+_OPT_ARG_OK = re.compile(r'\[\s*(-?[\d.]+\s*(pt|em|ex|mm|cm|in|mu)|[tbc])\s*\]')
+_BREAK_END = re.compile(r'(\\\\|\\begin\{[^}]*\})\s*$')
+_BREAK_MID = re.compile(r'(\\\\|\\begin\{[^}]*\})(\s*)(?=\[)')
+
+
+def fix_bracket_after_break(content):
+    """Prefix {} to a "[" that LaTeX would swallow as the optional argument of \\ or \begin{...}.
+
+    {} renders as nothing, so the formula looks the same, but the "[" is no
+    longer the first thing after the break. \\[2pt] and \begin{aligned}[t] are kept.
+    """
+    out = []
+    in_block = False
+    prev = ''
+    for line in content.split('\n'):
+        stripped = line.strip()
+        if stripped == '$$':
+            in_block = not in_block
+            prev = ''
+            out.append(line)
+            continue
+        if in_block and stripped:
+            if stripped.startswith('[') and _BREAK_END.search(prev) and not _OPT_ARG_OK.match(stripped):
+                indent = line[:len(line) - len(line.lstrip())]
+                line = indent + '{}' + line.lstrip()
+            line = _BREAK_MID.sub(
+                lambda m: m.group(0) if _OPT_ARG_OK.match(line, m.end()) else m.group(1) + m.group(2) + '{}',
+                line)
+            prev = line.strip()
+        out.append(line)
+    return '\n'.join(out)
+
+
+def split_fences(content):
+    """Split into (is_code, text) runs; a run of fenced code keeps its ``` lines.
+
+    Code blocks hold JSON, shell output and the like, where a $ is just a
+    character. Rewriting them as formulas corrupts them, so fix() leaves them alone.
+    """
+    runs = []
+    cur, in_fence = [], False
+    for line in content.split('\n'):
+        is_fence = line.lstrip().startswith('```')
+        if is_fence and not in_fence:
+            runs.append((False, cur))
+            cur, in_fence = [line], True
+        elif is_fence and in_fence:
+            cur.append(line)
+            runs.append((True, cur))
+            cur, in_fence = [], False
+        else:
+            cur.append(line)
+    runs.append((in_fence, cur))
+    return [(code, '\n'.join(lines)) for code, lines in runs if lines]
+
+
 def fix(content):
+    return '\n'.join(text if code else fix_prose(text) for code, text in split_fences(content))
+
+
+def fix_prose(content):
     # Fix 1: inline formula spacing
     content = fix_inline_spacing(content)
 
@@ -188,6 +259,9 @@ def fix(content):
 
     # Fix 3: bare function names
     content = fix_bare_functions(content)
+
+    # Fix 3b: "[" swallowed as an optional argument after \\ or \begin{...}
+    content = fix_bracket_after_break(content)
 
     # Fix 4: alignment environments
     content = re.sub(r'\\begin\{align\*?\}', r'\\begin{aligned}', content)
@@ -278,7 +352,7 @@ def fix(content):
     return '\n'.join(out)
 
 
-RULE_NAMES = {"行内公式", "块级公式", "对齐环境", "operatorname", "裸函数名"}
+RULE_NAMES = {"行内公式", "块级公式", "对齐环境", "operatorname", "裸函数名", "行首方括号"}
 
 
 def main():
