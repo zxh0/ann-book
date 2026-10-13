@@ -32,9 +32,11 @@ from lintscope import excluded
 WHITE = (255, 255, 255)
 
 # 量化误差阈值，来自仓库里这几类图的实测值（见 SKILL.md 的表）：
-# draw.io 插图 0.000~0.034，手画的图表 0.035~0.055，matplotlib 截图 0.237，
-# 带渐变的示意图 0.412，AI 章首图 3.519。
-AUTO = 0.1   # 误差在这以下：线稿图，直接量化
+# draw.io 插图 0.000~0.034（带编辑器网格的 0.010~0.136），手画的图表 0.035~0.055，
+# matplotlib 截图 0.237，带渐变的示意图 0.412，AI 章首图 3.519。
+# 网格带进来几千种抗锯齿的浅灰，把线稿图的误差抬高了一截，所以 AUTO 定在 0.2：
+# 带网格的插图都能自动量化，matplotlib 截图仍然挡在外面。
+AUTO = 0.2   # 误差在这以下：线稿图，直接量化
 ASK = 0.5    # 这之间：拿不准，报出来但不动，要量化得显式加 --palette
 
 # 省得太少就不重写，免得给 git 白添一个二进制大对象。
@@ -98,12 +100,15 @@ def shrink(path, palette_mode):
 
     # 压不出多少就不动它。重写一张已经压过的图，省下几百字节，却给 git
     # 添一个新的二进制大对象，不划算。
+    # 省得少有两种原因，要分开说：一是图本来就压过了；二是量化误差超了阈值，
+    # 只做了无损那一步，而无损本来就省不了多少。后者其实还没压过。
     size = os.path.getsize(path)
     saved = size - len(data)
-    if saved <= 0:
-        return None, f"已经压过了，重压反而大 {-saved:,} 字节，不动"
     if saved < max(size * MIN_RATIO, MIN_BYTES):
-        return None, f"已经压过了，再压只省 {saved:,} 字节（{100 * saved / size:.1f}%），不动"
+        amount = f"反而大 {-saved:,} 字节" if saved <= 0 else f"只省 {saved:,} 字节（{100 * saved / size:.1f}%）"
+        if not use_palette and palette_mode == "auto" and im.mode != "P":
+            return None, f"量化误差 {err:.3f} 偏大，只做无损，{amount}，不动"
+        return None, f"已经压过了，再压{amount}，不动"
     return data, how
 
 

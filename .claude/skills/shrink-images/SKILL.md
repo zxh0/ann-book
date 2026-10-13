@@ -11,7 +11,8 @@ AI 生成的章首图省 25% 左右且像素不变。
 
 ## When This Skill Applies
 
-- 一章的插图刚从 draw.io 导出、放进 `images/chNN/`，提交之前
+- 一章的插图刚从 draw.io 导出、放进 `images/chNN/`，提交之前。`books/toyllm/export_drawio.py`
+  导完会自动调用本脚本压一遍，不用再单独跑
 - 新的 AIGC 章首图刚放进 `aigc/`
 - 作者说图太大、站点加载慢，或想知道还有哪些图没压过
 - 某一章要上站之前，顺手扫一遍
@@ -52,12 +53,15 @@ uv run --no-project .claude/skills/shrink-images/scripts/shrink.py books/toyllm/
 pillow，既不碰 `books/toyllm/code/` 那个 uv 项目，也不往系统 python 里装东西。
 系统 `python3` 是 3.9 且没有 pillow，所以**不能**直接 `python3 shrink.py`。
 
-第一次跑要下载 pillow，和仓库里其他下载一样，得绕开 Claude Code 的代理：
+第一次跑要下载 pillow，和仓库里其他下载一样，得绕开 Claude Code 的代理；只绕开代理还会报
+`invalid peer certificate: UnknownIssuer`，所以还要加 `--native-tls`，让 uv 用系统的证书：
 
 ```bash
 env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy \
-  uv run --no-project .claude/skills/shrink-images/scripts/shrink.py books/toyllm/images/ch04/
+  uv run --native-tls --no-project .claude/skills/shrink-images/scripts/shrink.py books/toyllm/images/ch04/
 ```
+
+下载过一次以后 uv 会缓存起来，后面就不用再联网了。
 
 压完**打开看一眼**（Read 工具能直接看 PNG），确认文字边缘、虚线箭头、浅色块没出问题，
 再提交。
@@ -66,8 +70,8 @@ env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy \
 
 两步，第二步按实测误差决定做不做。
 
-**第一步，无损。** 有 alpha 通道的贴到白底上（draw.io 导出的背景是透明的，而站点和
-PDF 都是白底），丢掉 iCCP / eXIf / iTXt / pHYs 这些用不上的元数据块，再以
+**第一步，无损。** 有 alpha 通道的贴到白底上（draw.io 直接导出的背景是透明的，而站点和
+PDF 都是白底；`export_drawio.py` 导出的已经是白底或网格底，这一步对它不起作用），丢掉 iCCP / eXIf / iTXt / pHYs 这些用不上的元数据块，再以
 `optimize=True` 重新编码。像素一个都不变。
 
 **第二步，转 8 位调色板。** 自适应 256 色。这一步是有损的，所以脚本先量化一遍，量出
@@ -75,8 +79,8 @@ PDF 都是白底），丢掉 iCCP / eXIf / iTXt / pHYs 这些用不上的元数�
 
 | 平均误差 | 怎么办 |
 |---|---|
-| ≤ 0.1 | 线稿图，直接量化 |
-| 0.1 ~ 0.5 | 拿不准，只做第一步，报出误差；确实要压，显式加 `--palette` |
+| ≤ 0.2 | 线稿图，直接量化 |
+| 0.2 ~ 0.5 | 拿不准，只做第一步，报出误差；确实要压，显式加 `--palette` |
 | > 0.5 | 照片或渐变图，只做第一步 |
 
 阈值是照仓库里这几类图实测出来的，量化到 256 色的平均误差分别是：
@@ -84,16 +88,21 @@ PDF 都是白底），丢掉 iCCP / eXIf / iTXt / pHYs 这些用不上的元数�
 | 图 | 平均误差 | 前 256 色覆盖的像素 |
 |---|---|---|
 | draw.io 导出的插图（`images/chNN/`） | 0.000 ~ 0.034 | 99% ~ 100% |
+| draw.io 导出、带编辑器网格（`export_drawio.py`，toyllm 第六章） | 0.010 ~ 0.136 | |
 | 手画的图表（`ann4us/images/`、`notes/images/`） | 0.035 ~ 0.055 | 约 99% |
 | matplotlib 截图（`perceptron_demo.png`） | 0.237 | 94.8% |
 | 带渐变的示意图（`notes/images/llm0/llm.png`） | 0.412 | 91.5% |
 | 真彩可视化截图（`nn_vis_cnn_2d.png`） | 1.587 | 66.1% |
 | AI 生成的章首图（`aigc/chNN.png`） | 3.519 | 11.8% |
 
-线稿图和照片隔着两个数量级，所以 0.1 这个线画在哪都行，不必纠结。
+线稿图和照片隔着两个数量级。阈值原来是 0.1，带网格的插图出来以后提到了 0.2：网格带进来
+几千种抗锯齿的浅灰，误差最高到 0.136，但量化之后肉眼看不出差别；0.2 又仍然低于
+matplotlib 截图的 0.237，照片和渐变图照样挡在外面。
 
 **省得太少就不写。** 至少省 10% 且至少省 1 KB 才覆盖原文件。重写一张已经压过的图，
-省几百字节，却给 git 添一个新的二进制大对象，不划算。
+省几百字节，却给 git 添一个新的二进制大对象，不划算。省得少有两种原因，输出里分开说：
+一是图本来就压过了；二是量化误差超了阈值、只做了无损，而无损本来就省不了多少，
+这种图其实还没压过，确实要压就加 `--palette`。
 
 ## 选项
 
@@ -113,7 +122,9 @@ books/toyllm/images/ch04/proj.png
 books/toyllm/aigc/ch04.png
     683,909 ->   499,053  省 27.0%  无损，像素不变（量化误差会有 3.519，不划算）
 books/toyllm/images/ch04/progress.png
-     44,501  已经压过了，重压反而大 62 字节，不动
+     44,501  已经压过了，再压反而大 62 字节，不动
+books/ann4us/images/plot.png
+     55,016  量化误差 0.237 偏大，只做无损，只省 796 字节（1.4%），不动
 
 7 张图 1,069,378 -> 584,530 字节，省 45.3%
 1 张没动
