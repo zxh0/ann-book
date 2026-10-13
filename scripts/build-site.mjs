@@ -43,6 +43,7 @@ const BOOKS = [
       'ch03_tokenizer.md',
       'ch04_embedding.md',
       'ch05_norm.md',
+      'ch06_attn.md',
     ]),
   },
 ]

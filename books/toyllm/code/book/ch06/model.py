@@ -81,39 +81,39 @@ class Model:
         还没有位置编码，第七章再补。
         """
         T = x.shape[0]
-        n_heads = self.config.num_attention_heads              # 9
-        n_kv_heads = self.config.num_key_value_heads           # 3
-        head_dim = self.config.hidden_size // n_heads          # 576 / 9 = 64
+        n_heads = self.config.num_attention_heads     # 9
+        n_kv_heads = self.config.num_key_value_heads  # 3
+        head_dim = self.config.hidden_size // n_heads # 576 / 9 = 64
 
         # 三次线性投影。权重按(out, in)存放，所以要转置。
-        q = x @ layer["q_proj"].T                              # (T, 576) → (T, 576)
-        k = x @ layer["k_proj"].T                              # (T, 576) → (T, 192)
-        v = x @ layer["v_proj"].T                              # (T, 576) → (T, 192)
+        q = x @ layer["q_proj"].T # (T, 576) → (T, 576)
+        k = x @ layer["k_proj"].T # (T, 576) → (T, 192)
+        v = x @ layer["v_proj"].T # (T, 576) → (T, 192)
 
         # 拆头：先把最后一维切成(头数, 64)，再把头挪到最前面。
-        q = q.view(T, n_heads, head_dim).transpose(0, 1)       # (9, T, 64)
-        k = k.view(T, n_kv_heads, head_dim).transpose(0, 1)    # (3, T, 64)
-        v = v.view(T, n_kv_heads, head_dim).transpose(0, 1)    # (3, T, 64)
+        q = q.view(T, n_heads, head_dim).transpose(0, 1)    # (9, T, 64)
+        k = k.view(T, n_kv_heads, head_dim).transpose(0, 1) # (3, T, 64)
+        v = v.view(T, n_kv_heads, head_dim).transpose(0, 1) # (3, T, 64)
 
         # GQA：每个kv头连续复制3份，排成[0,0,0,1,1,1,2,2,2]，对齐9个q头。
         # 写成k.repeat(3, 1, 1)会排成[0,1,2,0,1,2,0,1,2]，形状一样，不报错，全错。
-        group = n_heads // n_kv_heads                          # 3
-        k = k.repeat_interleave(group, dim=0)                  # (3, T, 64) → (9, T, 64)
-        v = v.repeat_interleave(group, dim=0)                  # (3, T, 64) → (9, T, 64)
+        group = n_heads // n_kv_heads         # 3
+        k = k.repeat_interleave(group, dim=0) # (3, T, 64) → (9, T, 64)
+        v = v.repeat_interleave(group, dim=0) # (3, T, 64) → (9, T, 64)
 
-        # 每个头各算一张T×T的分数表：第i行第j列是词元i的q和词元j的k的点积。
-        scores = q @ k.transpose(1, 2) / head_dim ** 0.5       # (9, T, T)
+        # 每个头各算一张T×T的分数表：第a行第b列是词元a的q和词元b的k的点积。
+        scores = q @ k.transpose(1, 2) / head_dim ** 0.5 # (9, T, T)
 
-        # 因果掩码：右上角（j > i，也就是未来）置成-inf，softmax之后正好是0。
-        future = torch.ones(T, T, dtype=torch.bool).triu(1)   # (T, T)
+        # 因果掩码：右上角（b > a，也就是未来）置成-inf，softmax之后正好是0。
+        future = torch.ones(T, T, dtype=torch.bool).triu(1) # (T, T)
         scores = scores.masked_fill(future, float("-inf"))
 
-        probs = torch.softmax(scores, dim=-1)                  # (9, T, T)，每行和为1
-        out = probs @ v                                        # (9, T, 64)
+        probs = torch.softmax(scores, dim=-1) # (9, T, T)，每行和为1
+        out = probs @ v                       # (9, T, 64)
 
         # 拼头：把头挪回去，9个64维首尾相接拼回576维，再过o_proj把各头混合起来。
-        out = out.transpose(0, 1).reshape(T, n_heads * head_dim)  # (T, 576)
-        return out @ layer["o_proj"].T                         # (T, 576) → (T, 576)
+        out = out.transpose(0, 1).reshape(T, n_heads * head_dim) # (T, 576)
+        return out @ layer["o_proj"].T # (T, 576) → (T, 576)
 
     def ffn(self, x):
         """前馈网络，第八章再填。现在返回全0，(T, 576) → (T, 576)。

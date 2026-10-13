@@ -16,6 +16,8 @@ uv run python book/ch06/config.py          # 把config.json摊开看一眼
 uv run python book/ch06/model.py           # 走一遍30层，看模长怎么漂
 uv run python book/ch06/model.py "任意一段话"
 uv run python book/ch06/engine.py          # 接上两头转10圈
+uv run python book/ch06/check_attn.py      # attn和PyTorch自带的注意力对拍
+uv run python book/ch06/inspect_attn.py    # 看注意力到底在看哪，为什么一直吐ppo
 ```
 
 ## 文件
@@ -26,6 +28,8 @@ uv run python book/ch06/engine.py          # 接上两头转10圈
 | `model.py` | **这一章的重点**。`attn`从随机数换成真的注意力；`ffn`从随机数改成返回0；`block`调用`attn`时多传一个`layer` |
 | `engine.py` | `Engine`类和第四章**一字未改**；改的只是`main`里的说明文字 |
 | `weights.py` | 第二章那个，**一字未改** |
+| `check_attn.py` | **这一章新增**。拿`attn`和`F.scaled_dot_product_attention`对拍，再故意把GQA的复制顺序写错一次 |
+| `inspect_attn.py` | **这一章新增**。打印注意力权重、各位置两两的余弦、出口分数前几名的模长，解释为什么一直吐`ppo`。对比真模型的那几行借了transformers |
 
 ## attn做了什么
 
@@ -62,13 +66,12 @@ o_proj         (T, 576)    把各头的结果混合起来
 
 | | 相对误差 |
 |---|---|
-| 我们的`attn`，第0、15、29层，T取4和37 | 2.8e-8 ~ 8.5e-7 |
-| 故意把复制顺序写错（`repeat`） | 0.61 |
+| 我们的`attn`，第0、15、29层，T取4和37 | 1.9e-9 ~ 7.7e-7 |
+| 故意把复制顺序写错（`repeat`） | 0.82 |
 
 对不上的那一点是浮点舍入：PyTorch那个函数内部的累加顺序和我们不一样，所以不是
-逐位相同。但正确和错误之间差了六个数量级，没有灰色地带。
-
-（这组数是临时脚本跑出来的，还没放进这个目录。）
+逐位相同。但正确和错误之间差了六个数量级，没有灰色地带。数字出自`check_attn.py`，
+固定了随机种子，每次跑都一样。
 
 ## 为什么FFN返回0，而不是返回x
 
@@ -111,6 +114,8 @@ ID     [6403, 1980, 253, 655, 49064, 49064, 49064, 49064, 49064, 49064, 49064, 4
 又回到了复读，但和第四章的复读不是一回事。下面拆开解释。
 
 ## 为什么是ppo，为什么一直重复
+
+下面这几张表的数字，除了“换几个输入”那一张，都出自`inspect_attn.py`。
 
 一句话：注意力确实起作用了，但没有位置编码、也没有FFN，30层注意力基本是在给
 整句话求平均，各位置越来越像，最后整句话收敛成同一个向量。出口挑中`ppo`，是因为
