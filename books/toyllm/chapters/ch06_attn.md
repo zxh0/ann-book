@@ -67,9 +67,9 @@ $$
 \quad \right\} \text{线性投影} \\
 &\left.
 \begin{aligned}
-[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h] &= \mathbf{Q} \\
-[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_h] &= \mathbf{K} \\
-[\mathbf{V}_1, \mathbf{V}_2, ..., \mathbf{V}_h] &= \mathbf{V}
+\left[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h\right] &= \mathbf{Q} \\
+\left[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_h\right] &= \mathbf{K} \\
+\left[\mathbf{V}_1, \mathbf{V}_2, ..., \mathbf{V}_h\right] &= \mathbf{V}
 \end{aligned}
 \quad \right\} \text{拆分} \\
 &\left.
@@ -81,7 +81,7 @@ $$
 \quad \right\} \text{注意力} \\
 &\left.
 \begin{aligned}
-\mathbf{O} &= [\mathbf{O}_1, \mathbf{O}_2, ..., \mathbf{O}_h] \\
+\mathbf{O} &= \left[\mathbf{O}_1, \mathbf{O}_2, ..., \mathbf{O}_h\right] \\
 \mathbf{Y} &= \mathbf{O} \times \mathbf{W}_O
 \end{aligned}
 \quad \right\} \text{合并、线性投影}
@@ -201,9 +201,9 @@ $$
 $$
 \left.
 \begin{aligned}
-[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h] &= \mathbf{Q} \\
-[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_\textcolor{red}{h/g}] &= \mathbf{K} \\
-[\mathbf{V}_1, \mathbf{V}_2, ..., \mathbf{V}_\textcolor{red}{h/g}] &= \mathbf{V}
+\left[\mathbf{Q}_1, \mathbf{Q}_2, ..., \mathbf{Q}_h\right] &= \mathbf{Q} \\
+\left[\mathbf{K}_1, \mathbf{K}_2, ..., \mathbf{K}_\textcolor{red}{h/g}\right] &= \mathbf{K} \\
+\left[\mathbf{V}_1, \mathbf{V}_2, ..., \mathbf{V}_\textcolor{red}{h/g}\right] &= \mathbf{V}
 \end{aligned}
 \quad \right\} \text{拆分}
 $$
@@ -374,7 +374,7 @@ $$
 $$
 \left.
 \begin{aligned}
-\mathbf{O} &= [\mathbf{O}_1, \mathbf{O}_2, ..., \mathbf{O}_h] \\
+\mathbf{O} &= \left[\mathbf{O}_1, \mathbf{O}_2, ..., \mathbf{O}_h\right] \\
 \mathbf{Y} &= \mathbf{O} \times \mathbf{W}_O
 \end{aligned}
 \quad \right\} \text{合并、线性投影}
