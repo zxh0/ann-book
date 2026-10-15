@@ -7,11 +7,6 @@
       "path": "notes/**",
       "disable": ["符号记法"],
       "why": "笔记贴合各自论文的记法（\\boldsymbol、粗体大写矩阵），与书稿的记号约定不同，且是作者手写、刻意保留的"
-    },
-    {
-      "path": "books/toyllm/**",
-      "disable": ["符号记法/粗体大写"],
-      "why": "这本书用 Goodfellow 那一套：粗体小写=向量，粗体大写=矩阵，不加粗=数量。详见 .claude/skills/polish-prose/SKILL.md 的「符号约定」"
     }
   ]
 }

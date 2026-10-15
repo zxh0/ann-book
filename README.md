@@ -5,11 +5,8 @@
 书：
 
 * [人人能懂的人工神经网络](books/ann4us/Book.md)（WIP，[在线版](https://zxh0.github.io/ann-book/ann4us)）
-* [自己动手写LLM推理引擎](books/toyllm/README.md)（WIP，[在线版](https://zxh0.github.io/ann-book/toyllm)）
 
-工具：
-
-* [safetensors 参数布局查看器](tools/safetensors-viewer/)（[在线版](https://zxh0.github.io/ann-book/tools/safetensors-viewer/)）
+> 《自己动手写LLM推理引擎》和几个小工具（safetensors 参数布局查看器等）已经搬到了独立仓库 [llm-engine-book](https://github.com/zxh0/llm-engine-book)，在线版在 https://zxh0.github.io/llm-engine-book/ 。
 
 笔记：
 

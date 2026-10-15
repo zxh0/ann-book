@@ -1,6 +1,6 @@
 ---
 name: check-prose
-description: This skill should be used when the user asks to "check prose", "check the text", "检查正文", "检查行文", "审查文字", "检查玩具代码", or wants to audit the body text or toy_*.py examples anywhere in this repo (both books and the notes).
+description: This skill should be used when the user asks to "check prose", "check the text", "检查正文", "检查行文", "审查文字", "检查玩具代码", or wants to audit the body text or toy_*.py examples anywhere in this repo (the book and the notes).
 version: 1.1.0
 ---
 
@@ -18,7 +18,7 @@ version: 1.1.0
 
 ## Scope
 
-**整个仓库通用** —— 两本书（`books/ann4us/`、`books/toyllm/`）和笔记（`notes/`）共用同一套行文规范。
+**整个仓库通用** —— 书（`books/ann4us/`）和笔记（`notes/`）共用同一套行文规范。
 规则按**文件类型**分派，不看路径，所以直接把仓库根目录传进去就行。
 
 **正文** —— 任何 `*.md`。生成文件 `Book.md` 默认跳过（改正文要改 `chapters/`，改完重跑 `merge.py`）。
@@ -44,8 +44,7 @@ version: 1.1.0
 {
   "exclude": ["CLAUDE.md", "**/CLAUDE.md", "**/todo.md", "node_modules/**", "docs/**"],
   "scopes": [
-    {"path": "notes/**", "disable": ["符号记法"]},
-    {"path": "books/toyllm/**", "disable": ["符号记法/粗体大写"]}
+    {"path": "notes/**", "disable": ["符号记法"]}
   ]
 }
 ```
@@ -63,15 +62,15 @@ version: 1.1.0
 检查和修复均有对应脚本，位于 `scripts/` 目录，可传入文件、目录或多个路径：
 
 ```bash
-# 全仓库（两本书 + 笔记），各区域按自己的标准
+# 全仓库（书 + 笔记），各区域按自己的标准
 python3 scripts/check.py .
 
 # 单个章节 / 单个玩具代码文件
 python3 scripts/check.py books/ann4us/chapters/03_ch01_neuron.md
 python3 scripts/check.py books/ann4us/code/ch05/toy_rnn.py
 
-# 某一本书 / 只看玩具代码
-python3 scripts/check.py books/toyllm/
+# 整本书 / 只看玩具代码
+python3 scripts/check.py books/ann4us/
 python3 scripts/check.py books/ann4us/code/
 
 # 忽略区域豁免，全部规则都查
@@ -153,7 +152,7 @@ python3 scripts/fix.py books/
 
 | 模式 | 判定 |
 |---|---|
-| `\mathbf{X}` / `\boldsymbol{X}`（首字母大写拉丁字母） | 粗体大写 → 违规，应为非粗体大写。**这一条单独成子规则 `符号记法/粗体大写`**，可以按区域关掉：`books/toyllm/` 用 Goodfellow 那一套（粗体大写=矩阵），已在 `lint-scope.json` 里豁免 |
+| `\mathbf{X}` / `\boldsymbol{X}`（首字母大写拉丁字母） | 粗体大写 → 违规，应为非粗体大写。**这一条单独成子规则 `符号记法/粗体大写`**，可以在 `lint-scope.json` 里按区域单独关掉（用 Goodfellow 记法、粗体大写=矩阵的书稿需要这一条） |
 | `\vec{...}` | 箭头向量 → 违规，应为 `\mathbf{}` |
 | `\boldsymbol{x}`（拉丁字母） | 应统一为 `\mathbf{}` |
 

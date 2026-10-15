@@ -61,8 +61,8 @@ def rule_notation(lines, masked, path):
 
     for lineno, content, _kind in iter_formulas(lines):
         for m in BOLD_UPPER_PAT.finditer(content):
-            # 子规则名，好让 lint-scope.json 单独关掉它：toyllm 用 Goodfellow
-            # 那一套（粗体大写=矩阵），ann4us 和 notes 仍是「矩阵非粗体大写」。
+            # 子规则名，好让 lint-scope.json 能单独关掉它（用 Goodfellow 记法、
+            # 粗体大写=矩阵的书稿需要）；ann4us 和 notes 都是「矩阵非粗体大写」。
             add(lineno, f"粗体大写 `\\{m.group(1)}{{{m.group(2)}...}}`："
                         f"粗体只表示向量（小写），矩阵应用非粗体大写 `{m.group(2)}`",
                 rule="符号记法/粗体大写")

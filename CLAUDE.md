@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Chinese-language writing repo holding **two books in progress** plus a series of standalone deep-dive articles. Published at https://zxh0.github.io/ann-book/ (supports full-text search and formula rendering).
+A Chinese-language writing repo holding **one book in progress** plus a series of standalone deep-dive articles. Published at https://zxh0.github.io/ann-book/ (supports full-text search and formula rendering).
 
 | Path | What | Its own CLAUDE.md |
 |------|------|-------------------|
 | `books/ann4us/` | 《人人能懂的人工神经网络》 — accessible intro to neural networks for general readers, tracing AI history from the 1940s neuron to Transformers | `books/ann4us/CLAUDE.md` |
-| `books/toyllm/` | 《自己动手写LLM推理引擎》 (title provisional) — hand-write an LLM inference engine for SmolLM2-135M on CPU | `books/toyllm/CLAUDE.md`, plus `books/toyllm/code/CLAUDE.md` |
 | `notes/` | standalone 图解 articles, `YYYY-MM-DD-Slug.md` | — |
-| `tools/` | standalone single-file web tools, one directory each | — |
 
-**Read the relevant book's own CLAUDE.md before working on it.** Each carries that book's layout, build commands, chapter status, and local conventions. This file holds only what is true across the whole repo.
+**Read the book's own CLAUDE.md before working on it.** It carries the book's layout, build commands, chapter status, and local conventions. This file holds only what is true across the whole repo.
+
+The second book, 《自己动手写LLM推理引擎》, and the `tools/` directory moved to their own repo, `github.com/zxh0/llm-engine-book`, on 2026-10-15, together with the site pipeline and lint skills they need. Nothing here should reference `books/toyllm/` or `tools/` any more.
 
 This directory **is** the git root (`github.com/zxh0/ann-book`), and `main` is the only branch — writing is committed straight to it.
 
@@ -23,32 +23,24 @@ Standalone deep-dive articles, published separately from the books. One Markdown
 
 These are **hand-written by the author and deliberately not AI-polished**. When editing them, limit changes to what was asked (e.g. a typo fix) and preserve the author's voice.
 
-## tools/
-
-Self-contained front-end tools, one directory per tool, each an `index.html` with no build step and no dependencies plus a `README.md` explaining how it works. `scripts/build-site.mjs` copies every directory listed in its `TOOLS` table to `docs/public/tools/<dir>/`, so the site address is `/tools/<dir>/` and the landing page is `docs/tools.md`. The `README.md` is repo-only and is not copied to the site. **Adding a tool means dropping a directory into `tools/` and adding one entry to `TOOLS`** (title, blurb, note) — the `/tools` page and the homepage blurb read that entry from `sidebar.json`. Keep `README.md` at the repo root in sync too.
-
-The tool pages live outside VitePress, so links to them need `withBase()` in an explicit `<a target="_blank">`: a plain Markdown link to `/tools/...` does not get the `/ann-book/` base prefix, because VitePress only rebases links that resolve to a real page.
-
 ## Notation Conventions
 
-Repo-wide, both books and the notes:
+Repo-wide, the book and the notes:
 
 - Scalars: lowercase — $x$, $w$, $b$, $\eta$
 - Vectors: **bold** lowercase — `\mathbf{x}`, `\mathbf{h}`, `\mathbf{b}` (Greek: `\boldsymbol{\alpha}`, since `\mathbf` has no effect on Greek)
 - Matrices: uppercase, never bold — $W$, $Q$, $K$, $V$
 - Layer indices: superscripts
 
-Bold is reserved for vectors, so bold uppercase (`\mathbf{W}`) and arrow vectors (`\vec{x}`) are both wrong. Enforced by the `check-prose` rule 符号记法统一.
-
-**Exception: `books/toyllm/` writes matrices as bold uppercase** (`\mathbf{W}`, `\mathbf{Q}`), following Goodfellow's *Deep Learning*; non-bold means a plain quantity regardless of case. The sub-rule 符号记法/粗体大写 is switched off there in `.claude/lint-scope.json`, and the full convention is in `.claude/skills/polish-prose/SKILL.md`.
+Bold is reserved for vectors, so bold uppercase (`\mathbf{W}`) and arrow vectors (`\vec{x}`) are both wrong. Enforced by the `check-prose` rule 符号记法统一 (its sub-rule 符号记法/粗体大写 exists so an area can switch off just the bold-uppercase check).
 
 ## Content Language
 
-Prose is **Simplified Chinese**; code, identifiers, filenames, and diagram names are English. No space between CJK and Latin/digits (`SmolLM2模型`, not `SmolLM2 模型`); full-width Chinese quotes `“”`, never `""`. The author dislikes em-dashes (`——`) — use a comma, a colon, or split the sentence.
+Prose is **Simplified Chinese**; code, identifiers, filenames, and diagram names are English. No space between CJK and Latin/digits (`ReLU函数`, not `ReLU 函数`); full-width Chinese quotes `“”`, never `""`. The author dislikes em-dashes (`——`) — use a comma, a colon, or split the sentence.
 
 ## Custom Skills
 
-Two linters in `.claude/skills/`, both **repo-wide**: the same prose and formula conventions govern `books/ann4us/`, `books/toyllm/`, and `notes/`. Each takes files, directories, or several paths at once, recurses into directories, and skips dot-dirs and the generated `Book.md`.
+Two linters in `.claude/skills/`, both **repo-wide**: the same prose and formula conventions govern `books/ann4us/` and `notes/`. Each takes files, directories, or several paths at once, recurses into directories, and skips dot-dirs and the generated `Book.md`.
 
 ```bash
 python3 .claude/skills/check-formulas/scripts/check.py .     # LaTeX formatting for GitHub rendering

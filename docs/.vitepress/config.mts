@@ -7,12 +7,12 @@ const newest = latest[0].link
 export default defineConfig({
   title: '学 AI，从零开始',
   description:
-    '两本还在写的书《人人能懂的人工神经网络》《自己动手写LLM推理引擎》，和一个「图解 LLM」笔记系列。',
+    '一本还在写的书《人人能懂的人工神经网络》，和一个「图解 LLM」笔记系列。',
   lang: 'zh-CN',
   base: '/ann-book/',
   cleanUrls: true,
   lastUpdated: true,
-  // docs/ann4us/ 和 docs/toyllm/ 下的页面文件名沿用各自 chapters/ 的原名，这里映射成干净的地址
+  // docs/ann4us/ 下的页面文件名沿用 chapters/ 的原名，这里映射成干净的地址
   rewrites,
   head: [
     ['meta', { property: 'og:title', content: '学 AI，从零开始' }],
@@ -32,15 +32,7 @@ export default defineConfig({
     nav: [
       { text: '笔记', link: '/notes', activeMatch: '^/notes' },
       { text: '最新一篇', link: newest },
-      {
-        text: '书',
-        activeMatch: '^/(ann4us|toyllm)',
-        items: [
-          { text: '人人能懂的人工神经网络', link: '/ann4us' },
-          { text: '自己动手写LLM推理引擎', link: '/toyllm' },
-        ],
-      },
-      { text: '工具', link: '/tools', activeMatch: '^/tools' },
+      { text: '人人能懂的人工神经网络', link: '/ann4us', activeMatch: '^/ann4us' },
       { text: '提问纠错', link: 'https://github.com/zxh0/ann-book/issues' },
     ],
 
@@ -52,19 +44,13 @@ export default defineConfig({
           items: [{ text: '进度和目录', link: '/ann4us' }, ...books.ann.sidebar],
         },
       ],
-      '/toyllm': [
-        {
-          text: '自己动手写LLM推理引擎',
-          items: [{ text: '进度和目录', link: '/toyllm' }, ...books.toyllm.sidebar],
-        },
-      ],
     },
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/zxh0/ann-book' }],
 
     editLink: {
       // 站点里的 /notes/xxx 和仓库里的 notes/xxx.md 一一对应；
-      // 两本书的页面文件名都保留了各自 chapters/ 的原名，把站点地址前缀换成
+      // 书的页面文件名保留了 chapters/ 的原名，把站点地址前缀换成
       // books/<目录>/chapters 就是源文件。
       // 注意：这个函数和下面的分词器一样，会被序列化后送到浏览器执行，必须自包含，
       // 不能引用 sidebar.json 里的东西，所以下面这行书名是 build-site.mjs 里
@@ -72,7 +58,7 @@ export default defineConfig({
       pattern: ({ filePath }) => {
         const edit = (p) => `https://github.com/zxh0/ann-book/edit/main/${p}`
         if (filePath.startsWith('notes/')) return edit(filePath)
-        for (const dir of ['ann4us', 'toyllm']) {
+        for (const dir of ['ann4us']) {
           if (filePath.startsWith(`${dir}/`))
             return edit(`books/${dir}/chapters/${filePath.slice(dir.length + 1)}`)
         }

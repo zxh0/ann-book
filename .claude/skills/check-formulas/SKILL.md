@@ -1,6 +1,6 @@
 ---
 name: check-formulas
-description: This skill should be used when the user asks to "check formulas", "verify math", "check equations", "检查公式", or mentions formula errors in a markdown file. Covers the whole repo: both books and the notes.
+description: This skill should be used when the user asks to "check formulas", "verify math", "check equations", "检查公式", or mentions formula errors in a markdown file. Covers the whole repo: the book and the notes.
 version: 1.0.0
 ---
 
@@ -14,7 +14,7 @@ version: 1.0.0
 
 ## Scope
 
-**整个仓库通用** —— 两本书和 `notes/` 面向的都是 GitHub 的 Markdown 渲染，公式格式要求完全一致。
+**整个仓库通用** —— 书和 `notes/` 面向的都是 GitHub 的 Markdown 渲染，公式格式要求完全一致。
 与 `check-prose` 共用仓库根的 `.claude/lint-scope.json` 做区域豁免和排除（格式见那个技能的
 SKILL.md）；目前公式规则在所有区域都全开，只排除了 `CLAUDE.md` 这类非书稿文件。
 
@@ -26,9 +26,9 @@ SKILL.md）；目前公式规则在所有区域都全开，只排除了 `CLAUDE.
 # 全仓库
 python3 scripts/check.py .
 
-# 单个文件 / 某一本书 / 笔记
+# 单个文件 / 整本书 / 笔记
 python3 scripts/check.py books/ann4us/chapters/03_ch01_neuron.md
-python3 scripts/check.py books/toyllm/ notes/
+python3 scripts/check.py books/ann4us/ notes/
 
 # 自动修复（覆盖原文件）。fix.py 是整体一趟改写，无法只改部分规则，
 # 所以务必先用 --dry-run 看 diff，尤其是对作者手写的 notes/
