@@ -27,13 +27,13 @@ SKILL.md）；目前公式规则在所有区域都全开，只排除了 `CLAUDE.
 python3 scripts/check.py .
 
 # 单个文件 / 整本书 / 笔记
-python3 scripts/check.py books/ann4us/chapters/03_ch01_neuron.md
-python3 scripts/check.py books/ann4us/ notes/
+python3 scripts/check.py book/chapters/03_ch01_neuron.md
+python3 scripts/check.py book/ notes/
 
 # 自动修复（覆盖原文件）。fix.py 是整体一趟改写，无法只改部分规则，
 # 所以务必先用 --dry-run 看 diff，尤其是对作者手写的 notes/
 python3 scripts/fix.py --dry-run notes/2026-07-05-PE.md
-python3 scripts/fix.py books/ann4us/chapters/
+python3 scripts/fix.py book/chapters/
 ```
 
 目录会递归展开 `*.md`，自动跳过点目录和生成的 `Book.md`。` ``` ` 代码块里的内容不检查也不修改：JSON、终端输出里的 `$` 只是普通字符，不是公式。同理，一行里只有一个 `$`、没有配对的，也不当作公式处理。

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { sidebar, latest, books, rewrites } from './sidebar.json'
 
-// sidebar.json 由 scripts/build-site.mjs 从 notes/ 和 books/ 生成
+// sidebar.json 由 scripts/build-site.mjs 从 notes/ 和 book/ 生成
 const newest = latest[0].link
 
 export default defineConfig({
@@ -12,7 +12,7 @@ export default defineConfig({
   base: '/ann-book/',
   cleanUrls: true,
   lastUpdated: true,
-  // docs/ann4us/ 下的页面文件名沿用 chapters/ 的原名，这里映射成干净的地址
+  // docs/book/ 下的页面文件名沿用 chapters/ 的原名，这里映射成干净的地址
   rewrites,
   head: [
     ['meta', { property: 'og:title', content: '学 AI，从零开始' }],
@@ -32,16 +32,16 @@ export default defineConfig({
     nav: [
       { text: '笔记', link: '/notes', activeMatch: '^/notes' },
       { text: '最新一篇', link: newest },
-      { text: '人人能懂的人工神经网络', link: '/ann4us', activeMatch: '^/ann4us' },
+      { text: '人人能懂的人工神经网络', link: '/book', activeMatch: '^/book' },
       { text: '提问纠错', link: 'https://github.com/zxh0/ann-book/issues' },
     ],
 
     sidebar: {
       '/notes': [{ text: '图解 LLM 系列笔记', link: '/notes', items: sidebar }],
-      '/ann4us': [
+      '/book': [
         {
           text: '人人能懂的人工神经网络',
-          items: [{ text: '进度和目录', link: '/ann4us' }, ...books.ann.sidebar],
+          items: [{ text: '进度和目录', link: '/book' }, ...books.ann.sidebar],
         },
       ],
     },
@@ -50,18 +50,14 @@ export default defineConfig({
 
     editLink: {
       // 站点里的 /notes/xxx 和仓库里的 notes/xxx.md 一一对应；
-      // 书的页面文件名保留了 chapters/ 的原名，把站点地址前缀换成
-      // books/<目录>/chapters 就是源文件。
+      // 书的页面文件名保留了 chapters/ 的原名，站点地址前缀 book/ 和书稿目录同名，
+      // 中间补一层 chapters/ 就是源文件。
       // 注意：这个函数和下面的分词器一样，会被序列化后送到浏览器执行，必须自包含，
-      // 不能引用 sidebar.json 里的东西，所以下面这行书名是 build-site.mjs 里
-      // BOOKS 的手抄版（站点地址前缀和 books/ 下的目录名同名），加书时两边一起改。
+      // 不能引用 sidebar.json 里的东西。
       pattern: ({ filePath }) => {
         const edit = (p) => `https://github.com/zxh0/ann-book/edit/main/${p}`
         if (filePath.startsWith('notes/')) return edit(filePath)
-        for (const dir of ['ann4us']) {
-          if (filePath.startsWith(`${dir}/`))
-            return edit(`books/${dir}/chapters/${filePath.slice(dir.length + 1)}`)
-        }
+        if (filePath.startsWith('book/')) return edit(`book/chapters/${filePath.slice('book/'.length)}`)
         return 'https://github.com/zxh0/ann-book/issues'
       },
       text: '在 GitHub 上纠错',

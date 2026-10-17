@@ -6,7 +6,7 @@ version: 1.1.0
 
 # Check Prose in the Manuscript
 
-检查 `books/ann4us/` 下的正文（去掉公式、代码块、图片、表格之后的叙述文字）和玩具代码是否符合本书的规范。
+检查 `book/` 下的正文（去掉公式、代码块、图片、表格之后的叙述文字）和玩具代码是否符合本书的规范。
 与 `check-formulas` 互补：那个技能只管 LaTeX 公式的渲染格式，这个技能管中文正文和示例代码。
 
 ## When This Skill Applies
@@ -18,7 +18,7 @@ version: 1.1.0
 
 ## Scope
 
-**整个仓库通用** —— 书（`books/ann4us/`）和笔记（`notes/`）共用同一套行文规范。
+**整个仓库通用** —— 书（`book/`）和笔记（`notes/`）共用同一套行文规范。
 规则按**文件类型**分派，不看路径，所以直接把仓库根目录传进去就行。
 
 **正文** —— 任何 `*.md`。生成文件 `Book.md` 默认跳过（改正文要改 `chapters/`，改完重跑 `merge.py`）。
@@ -31,9 +31,9 @@ version: 1.1.0
 - HTML 标签行（如 `<div style="page-break-after: always;"></div>`）
 - YAML frontmatter
 
-**玩具代码** —— 任何 `toy_*.py`。示例代码分两类（见 ann4us 前言）：一类是帮助理解概念的
+**玩具代码** —— 任何 `toy_*.py`。示例代码分两类（见本书前言）：一类是帮助理解概念的
 “玩具代码”，文件名以 `toy_` 开头；另一类是可实际运行的 PyTorch 示例（`perceptron.py`、
-`char_rnn.py` 等）。**只有 `toy_` 开头的文件受本技能约束**。目前只有 `books/ann4us/code/`
+`char_rnn.py` 等）。**只有 `toy_` 开头的文件受本技能约束**。目前只有 `book/code/`
 下有这类文件，但判定靠文件名，新增区域无需改代码。`.venv` 等点开头的目录一律跳过。
 
 ### 按区域豁免规则
@@ -66,19 +66,19 @@ version: 1.1.0
 python3 scripts/check.py .
 
 # 单个章节 / 单个玩具代码文件
-python3 scripts/check.py books/ann4us/chapters/03_ch01_neuron.md
-python3 scripts/check.py books/ann4us/code/ch05/toy_rnn.py
+python3 scripts/check.py book/chapters/03_ch01_neuron.md
+python3 scripts/check.py book/code/ch05/toy_rnn.py
 
 # 整本书 / 只看玩具代码
-python3 scripts/check.py books/ann4us/
-python3 scripts/check.py books/ann4us/code/
+python3 scripts/check.py book/
+python3 scripts/check.py book/code/
 
 # 忽略区域豁免，全部规则都查
 python3 scripts/check.py --all-rules notes/
 
 # 自动修复（覆盖原文件），仅修复标记为可自动修复的规则；先用 --dry-run 看 diff
-python3 scripts/fix.py --dry-run books/
-python3 scripts/fix.py books/
+python3 scripts/fix.py --dry-run book/
+python3 scripts/fix.py book/
 ```
 
 **`fix.py` 同样尊重区域豁免**：对 `notes/**` 不会做符号记法改写。
@@ -170,7 +170,7 @@ BOLDSYM_LATIN = re.compile(r'\\boldsymbol\{\s*([a-zA-Z])\s*\}')
 1. 先跑机械层，清掉粗体大写和 `\vec`
 2. 通读该章公式，列出出现的所有符号，逐个标注它是标量／向量／矩阵
 3. 对照上面三条约定，找出排版与语义不符的符号
-4. 同一符号在全书中语义要一致——跨章改名或改排版时，用 `grep -n '符号' books/ann4us/chapters/*.md` 全局确认
+4. 同一符号在全书中语义要一致——跨章改名或改排版时，用 `grep -n '符号' book/chapters/*.md` 全局确认
 
 是否可自动修复：部分。`\vec{x}` → `\mathbf{x}`（小写）、`\boldsymbol{x}` → `\mathbf{x}`（拉丁小写）
 可以自动改；粗体大写改成什么（去掉粗体，还是改成粗体小写）取决于该符号是矩阵还是向量，只报告不自动改。
@@ -178,7 +178,7 @@ BOLDSYM_LATIN = re.compile(r'\\boldsymbol\{\s*([a-zA-Z])\s*\}')
 > **注意（当前状态）**：正文已完成迁移，涉及第零、一、二、三、五、七、十章，
 > 机械层与语义层当前均无违规，根目录 `CLAUDE.md` 的 Notation Conventions 已同步。
 > 第四章无需改动（其中 P、K、Y 分别是图像块、卷积核、特征图，本就是矩阵）。
-> **配图尚未同步**：`books/ann4us/draw/*.drawio` 源文件和导出的 PNG 仍是旧的大写记法
+> **配图尚未同步**：`book/draw/*.drawio` 源文件和导出的 PNG 仍是旧的大写记法
 > （ch05 约 121 处、ch07 约 57 处，另 ch02/ch03/ch04/ch09 约 47 处），待重绘。
 
 ---
@@ -270,7 +270,7 @@ $...$」的正则会把这 13 处全改错，而且改完读起来还挺顺，�
 
 ### 玩具代码规范（toy-code）
 
-`books/ann4us/code/chNN/toy_*.py` 里的玩具代码，统一遵守三条：
+`book/code/chNN/toy_*.py` 里的玩具代码，统一遵守三条：
 
 1. **统一使用 numpy 的 array** 表示向量和矩阵，不用 Python 原生列表（`list[float]`、嵌套列表）
 2. **向量**的变量名统一以 `vec` 开头
@@ -363,7 +363,7 @@ vec_y = mat_w @ vec_x
 1. 右侧不是 numpy 直接构造的变量（函数返回值、切片、运算结果），机械层不判定维度，要人工确认
 2. 元素是数组的容器（如 `kernel_list`）该怎么命名，规则没有规定，需要单独约定
 3. 改名要同步所有引用点，包括函数形参、闭包捕获的变量、注释和 print 里的字符串
-4. **章节里的代码块要和 `toy_*.py` 保持一致**：同一段玩具代码在 `books/ann4us/chapters/*.md` 里
+4. **章节里的代码块要和 `toy_*.py` 保持一致**：同一段玩具代码在 `book/chapters/*.md` 里
    以 ```` ```python ```` 代码块重复出现，改完 `.py` 必须同步改章节，否则书里印的和仓库里的不一样
 
 第 4 点没有做成机械检查，因为章节代码块无法可靠地区分“玩具代码”和 PyTorch 示例，
@@ -381,12 +381,12 @@ vec_y = mat_w @ vec_x
 > - **命名统一为前缀**：`input_mat`→`mat_input` 这类后缀写法全部改为前缀。
 >   涉及 9 个 `.py` 重写、4 个批量重命名、27 个章节代码块，全部实测可运行。
 > - **手写实现已全部改用 numpy 数组**，`toy-exempt` 标记已随之移除，现无代码使用。
-> - **配图尚未同步**：`books/ann4us/draw/*.drawio` 及导出的 PNG 仍是旧的大写记法，待重绘
+> - **配图尚未同步**：`book/draw/*.drawio` 及导出的 PNG 仍是旧的大写记法，待重绘
 >   （见规则1 的状态说明）。
 
 ### 语义层：章节代码块与 `.py` 必须逐字一致
 
-同一段玩具代码在 `books/ann4us/chapters/*.md` 和 `books/ann4us/code/chNN/toy_*.py` 各存一份，
+同一段玩具代码在 `book/chapters/*.md` 和 `book/code/chNN/toy_*.py` 各存一份，
 两边必须完全一致，否则书里印的和仓库里的不是同一份代码。改完一边一定要核对另一边。
 
 核对方法：提取章节代码块，逐行检查是否都能在对应 `.py` 中找到。这一步实测有效——

@@ -8,12 +8,12 @@ A Chinese-language writing repo holding **one book in progress** plus a series o
 
 | Path | What | Its own CLAUDE.md |
 |------|------|-------------------|
-| `books/ann4us/` | 《人人能懂的人工神经网络》 — accessible intro to neural networks for general readers, tracing AI history from the 1940s neuron to Transformers | `books/ann4us/CLAUDE.md` |
+| `book/` | 《人人能懂的人工神经网络》 — accessible intro to neural networks for general readers, tracing AI history from the 1940s neuron to Transformers | `book/CLAUDE.md` |
 | `notes/` | standalone 图解 articles, `YYYY-MM-DD-Slug.md` | — |
 
 **Read the book's own CLAUDE.md before working on it.** It carries the book's layout, build commands, chapter status, and local conventions. This file holds only what is true across the whole repo.
 
-The second book, 《自己动手写LLM推理引擎》, and the `tools/` directory moved to their own repo, `github.com/zxh0/llm-engine-book`, on 2026-10-15, together with the site pipeline and lint skills they need. Nothing here should reference `books/toyllm/` or `tools/` any more.
+The second book, 《自己动手写LLM推理引擎》, and the `tools/` directory moved to their own repo, `github.com/zxh0/llm-engine-book`, on 2026-10-15, together with the site pipeline and lint skills they need. Nothing here should reference `books/toyllm/` or `tools/` any more. With one book left, `books/ann4us/` became `book/` on 2026-10-17, and the site route moved from `/ann4us` to `/book` with it.
 
 This directory **is** the git root (`github.com/zxh0/ann-book`), and `main` is the only branch — writing is committed straight to it.
 
@@ -40,7 +40,7 @@ Prose is **Simplified Chinese**; code, identifiers, filenames, and diagram names
 
 ## Custom Skills
 
-Two linters in `.claude/skills/`, both **repo-wide**: the same prose and formula conventions govern `books/ann4us/` and `notes/`. Each takes files, directories, or several paths at once, recurses into directories, and skips dot-dirs and the generated `Book.md`.
+Two linters in `.claude/skills/`, both **repo-wide**: the same prose and formula conventions govern `book/` and `notes/`. Each takes files, directories, or several paths at once, recurses into directories, and skips dot-dirs and the generated `Book.md`.
 
 ```bash
 python3 .claude/skills/check-formulas/scripts/check.py .     # LaTeX formatting for GitHub rendering

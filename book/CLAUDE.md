@@ -11,7 +11,7 @@ The premise, from `chapters/01_preface.md`: 只要掌握中学阶段的基础数
 1. **History is the thread.** The book is 一部“人工神经网络的简史” — it walks forward from the 1940s artificial neuron through the perceptron, MLP, CNN, RNN, LSTM, Seq2Seq, attention, and Transformer. Chapter order *is* the historical order; a concept is introduced where history introduced it, not where a textbook would.
 2. **Training is a black box.** Backpropagation, loss functions, and gradients are deferred to 第十三章 by design (the preface's 把训练过程当黑盒 section frames each topic as a game BOSS that must not be too hard too early). Earlier chapters state results and their consequences, never derivations.
 
-See also the repo-wide conventions in `../../CLAUDE.md` — notation, the prose/formula linters, and the Simplified-Chinese rules apply here too.
+See also the repo-wide conventions in `../CLAUDE.md` — notation, the prose/formula linters, and the Simplified-Chinese rules apply here too.
 
 ## Layout
 
@@ -78,11 +78,11 @@ The preface (公式、图表、代码) splits the examples into two kinds, and t
 ## Before committing a chapter
 
 ```bash
-python3 ../../.claude/skills/check-formulas/scripts/check.py chapters/03_ch01_neuron.md
-python3 ../../.claude/skills/check-prose/scripts/check.py    chapters/03_ch01_neuron.md
+python3 ../.claude/skills/check-formulas/scripts/check.py chapters/03_ch01_neuron.md
+python3 ../.claude/skills/check-prose/scripts/check.py    chapters/03_ch01_neuron.md
 python3 merge.py
 ```
 
-Both linters take files, directories, or several paths, and recurse (`chapters/`, `code/`, or the whole book). The `fix.py` next to each `check.py` auto-fixes the mechanical rules; both accept `--dry-run`. They are repo-wide and configured by `../../.claude/lint-scope.json` — see the root `CLAUDE.md`.
+Both linters take files, directories, or several paths, and recurse (`chapters/`, `code/`, or the whole book). The `fix.py` next to each `check.py` auto-fixes the mechanical rules; both accept `--dry-run`. They are repo-wide and configured by `../.claude/lint-scope.json` — see the root `CLAUDE.md`.
 
 Note: chapters written before the current notation convention still use plain uppercase for vectors; they are being migrated one chapter at a time, so `check-prose` notation warnings in an old chapter are expected rather than new breakage.

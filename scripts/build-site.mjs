@@ -1,13 +1,12 @@
-// 从 notes/ 和 books/ 生成 VitePress 站点内容。
-// notes/*.md 和 books/*/chapters/*.md 是唯一的内容来源，
-// docs/notes/、docs/ann4us/、docs/public/、sidebar.json 都是生成物。
+// 从 notes/ 和 book/ 生成 VitePress 站点内容。
+// notes/*.md 和 book/chapters/*.md 是唯一的内容来源，
+// docs/notes/、docs/book/、docs/public/、sidebar.json 都是生成物。
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const notesDir = path.join(root, 'notes')
-const booksDir = path.join(root, 'books')
 const docsDir = path.join(root, 'docs')
 const outDir = path.join(docsDir, 'notes')
 const publicDir = path.join(docsDir, 'public')
@@ -17,10 +16,10 @@ const publicDir = path.join(docsDir, 'public')
 const BOOKS = [
   {
     // 《人人能懂的人工神经网络》：分章文件名是 NN_slug.md，章标题写成 ##，
-    // 插图在 books/ann4us/images/ 下，正文里引作 ../images/xxx，封面另放在 aigc/ 下
+    // 插图在 book/images/ 下，正文里引作 ../images/xxx，封面另放在 aigc/ 下
     key: 'ann',
-    dir: 'ann4us', // books/ 下的目录名
-    route: 'ann4us', // 站点地址前缀，同时也是 docs/ 下的目录名
+    dir: 'book', // 仓库根下的目录名
+    route: 'book', // 站点地址前缀，同时也是 docs/ 下的目录名
     chapterRe: /^\d+_(.+)\.md$/,
     skipTitle: '人人能懂的人工神经网络', // 书名页不算章节
     promote: true, // 章标题 ## 提到 #，正文各级标题跟着上移一级
@@ -29,7 +28,7 @@ const BOOKS = [
   },
 ]
 
-const chaptersDirOf = (book) => path.join(booksDir, book.dir, 'chapters')
+const chaptersDirOf = (book) => path.join(root, book.dir, 'chapters')
 
 // 笔记文件名约定：YYYY-MM-DD-Slug.md
 const NOTE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/
@@ -155,7 +154,7 @@ const sidebar = notes.map(({ date, title, link, collapsed, items }) => ({
 
 // 书按章上站：published 里的章节生成页面，其余的只在目录页里列个标题。
 // 页面文件保留 chapters/ 的原始文件名，再用 VitePress 的 rewrites 映射到干净的
-// 地址（/ann4us/ch00-basics），这样 editLink 拿到的 filePath 还能直接对回 chapters/ 下的源文件。
+// 地址（/book/ch00-basics），这样 editLink 拿到的 filePath 还能直接对回 chapters/ 下的源文件。
 const rewrites = {}
 
 function buildBook(book) {
@@ -232,9 +231,9 @@ copyDir(path.join(notesDir, 'images'), path.join(publicDir, 'images'))
 // 书的插图占 images/ 下的一个子目录，跟笔记的插图分开，免得两边目录重名；
 // aigc/ 下 AI 生成的章首图同理，另占 aigc/ 下的一个子目录
 for (const book of BOOKS) {
-  copyDir(path.join(booksDir, book.dir, 'images'), path.join(publicDir, 'images', book.route))
-  copyDir(path.join(booksDir, book.dir, 'aigc'), path.join(publicDir, 'aigc', book.route))
-  fs.copyFileSync(path.join(booksDir, book.dir, book.cover.from), path.join(publicDir, book.cover.name))
+  copyDir(path.join(root, book.dir, 'images'), path.join(publicDir, 'images', book.route))
+  copyDir(path.join(root, book.dir, 'aigc'), path.join(publicDir, 'aigc', book.route))
+  fs.copyFileSync(path.join(root, book.dir, book.cover.from), path.join(publicDir, book.cover.name))
 }
 
 console.log(

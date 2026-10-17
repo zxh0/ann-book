@@ -25,7 +25,7 @@ AI 生成的章首图省 25% 左右且像素不变。
 `docs/**` 和 `node_modules/**` 会被跳过，点目录（`.venv` 等）也跳过。
 所以直接把仓库根传进去是安全的。
 
-**改的是仓库里的源图**（`books/*/images/`、`books/*/aigc/`、`notes/images/`），
+**改的是仓库里的源图**（`book/images/`、`book/aigc/`、`notes/images/`），
 不是 `docs/public/` 下的拷贝。压完记得重新生成站点内容：
 
 ```bash
@@ -36,7 +36,7 @@ npm run prepare:site      # 或者 npm run build，它会先跑这个
 
 ```bash
 # 压一章的插图（默认就地覆盖）
-uv run --no-project .claude/skills/shrink-images/scripts/shrink.py books/ann4us/images/
+uv run --no-project .claude/skills/shrink-images/scripts/shrink.py book/images/
 
 # 先看看能省多少，不写文件；对作者手写的 notes/ 建议先这么跑
 uv run --no-project .claude/skills/shrink-images/scripts/shrink.py --dry-run notes/images/
@@ -45,11 +45,11 @@ uv run --no-project .claude/skills/shrink-images/scripts/shrink.py --dry-run not
 uv run --no-project .claude/skills/shrink-images/scripts/shrink.py --dry-run .
 
 # 多个路径一起传，文件和目录混着都行
-uv run --no-project .claude/skills/shrink-images/scripts/shrink.py books/ann4us/images/ books/ann4us/aigc/ann.png
+uv run --no-project .claude/skills/shrink-images/scripts/shrink.py book/images/ book/aigc/ann.png
 ```
 
 脚本用 PEP 723 内联依赖声明（文件头的 `# /// script`），`uv run` 会自建临时环境装
-pillow，既不碰 `books/ann4us/code/` 那个 uv 项目，也不往系统 python 里装东西。
+pillow，既不碰 `book/code/` 那个 uv 项目，也不往系统 python 里装东西。
 系统 `python3` 是 3.9 且没有 pillow，所以**不能**直接 `python3 shrink.py`。
 
 第一次跑要下载 pillow，和仓库里其他下载一样，得绕开 Claude Code 的代理；只绕开代理还会报
@@ -57,7 +57,7 @@ pillow，既不碰 `books/ann4us/code/` 那个 uv 项目，也不往系统 pytho
 
 ```bash
 env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY -u http_proxy \
-  uv run --native-tls --no-project .claude/skills/shrink-images/scripts/shrink.py books/ann4us/images/
+  uv run --native-tls --no-project .claude/skills/shrink-images/scripts/shrink.py book/images/
 ```
 
 下载过一次以后 uv 会缓存起来，后面就不用再联网了。
@@ -88,7 +88,7 @@ PDF 都是白底），丢掉 iCCP / eXIf / iTXt / pHYs 这些用不上的元数�
 |---|---|---|
 | draw.io 导出的插图（`images/chNN/`） | 0.000 ~ 0.034 | 99% ~ 100% |
 | draw.io 导出、带编辑器网格 | 0.010 ~ 0.136 | |
-| 手画的图表（`ann4us/images/`、`notes/images/`） | 0.035 ~ 0.055 | 约 99% |
+| 手画的图表（`book/images/`、`notes/images/`） | 0.035 ~ 0.055 | 约 99% |
 | matplotlib 截图（`perceptron_demo.png`） | 0.237 | 94.8% |
 | 带渐变的示意图（`notes/images/llm0/llm.png`） | 0.412 | 91.5% |
 | 真彩可视化截图（`nn_vis_cnn_2d.png`） | 1.587 | 66.1% |
@@ -116,13 +116,13 @@ matplotlib 截图的 0.237，照片和渐变图照样挡在外面。
 一张图两行，压了的给出前后字节数、省了多少、用的哪种办法；没压的说明为什么：
 
 ```
-books/ann4us/images/ch04/proj.png
+book/images/ch04/proj.png
      18,775 ->     2,214  省 88.2%  调色板256色，平均误差 0.000
-books/ann4us/aigc/ann.png
+book/aigc/ann.png
     683,909 ->   499,053  省 27.0%  无损，像素不变（量化误差会有 3.519，不划算）
-books/ann4us/images/ch04/progress.png
+book/images/ch04/progress.png
      44,501  已经压过了，再压反而大 62 字节，不动
-books/ann4us/images/plot.png
+book/images/plot.png
      55,016  量化误差 0.237 偏大，只做无损，只省 796 字节（1.4%），不动
 
 7 张图 1,069,378 -> 584,530 字节，省 45.3%
