@@ -19,9 +19,26 @@ This directory **is** the git root (`github.com/zxh0/ann-book`), and `main` is t
 
 ## notes/
 
-Standalone deep-dive articles, published separately from the books. One Markdown file per article, named `YYYY-MM-DD-Slug.md` by publication date, with draw.io sources in `notes/draw/` and exported assets in `notes/images/<slug>/`. `README.md` at the repo root lists them all and is the index to keep in sync when adding one.
+Standalone deep-dive articles, published separately from the book. One Markdown file per article, named `YYYY-MM-DD-Slug.md` by publication date, with draw.io sources in `notes/draw/` and exported assets in `notes/images/<slug>/`. `README.md` at the repo root lists them all and is the index to keep in sync when adding one.
 
 These are **hand-written by the author and deliberately not AI-polished**. When editing them, limit changes to what was asked (e.g. a typo fix) and preserve the author's voice.
+
+## Site
+
+Published at https://zxh0.github.io/ann-book/ by `.github/workflows/deploy.yml` on every push to `main` (GitHub Pages, source = GitHub Actions). Locally:
+
+```bash
+npm ci                   # once
+npm run dev              # prepare:site + vitepress dev
+npm run build            # prepare:site + vitepress build -> docs/.vitepress/dist
+```
+
+`scripts/build-site.mjs` is the only content pipeline. `notes/*.md` and `book/chapters/*.md` are the sources; `docs/notes/`, `docs/book/`, `docs/public/` and `docs/.vitepress/sidebar.json` are regenerated on every run and gitignored. Hand-written site files are `docs/index.md` (homepage), `docs/book.md` (the book's 进度和目录 page), `docs/notes.md` and `docs/.vitepress/` (config and theme).
+
+- **Notes publish automatically**: every file matching `YYYY-MM-DD-Slug.md` gets a page; the sidebar runs oldest-first (the series builds on itself), the homepage list newest-first.
+- **Book chapters go up one at a time**: `published` in the `BOOKS` entry of `build-site.mjs` lists the chapter files that get a page; the rest only show as grey titles on `/book`. Publishing a chapter means adding its filename there. Chapter headings are promoted one level (`##` → `#`) because the chapter file's H1 is the book title.
+- Pages keep the `chapters/` filenames and are mapped to clean URLs (`/book/ch01-neuron`) through VitePress `rewrites`, so the edit link resolves straight back to `book/chapters/`. The route `/book` and the directory `book/` are the same name on purpose; `config.mts`'s `editLink` hard-codes that mapping because it runs in the browser and cannot read `sidebar.json`.
+- `<img src="../images/chNN/x.png" style="zoom:50%">` tags are rewritten to Markdown images under `/images/book/`; notes' `./images/` likewise under `/images/`. `book/aigc/ann.png` is copied as the site's `ann.png` (cover and og:image).
 
 ## Notation Conventions
 

@@ -83,6 +83,8 @@ python3 ../.claude/skills/check-prose/scripts/check.py    chapters/03_ch01_neuro
 python3 merge.py
 ```
 
+Then, if the chapter is ready for the site, add its filename to `published` in `../scripts/build-site.mjs` and run `npm run build` from the repo root (see the root `CLAUDE.md`, **Site**); chapters not listed there appear on the site only as grey titles.
+
 Both linters take files, directories, or several paths, and recurse (`chapters/`, `code/`, or the whole book). The `fix.py` next to each `check.py` auto-fixes the mechanical rules; both accept `--dry-run`. They are repo-wide and configured by `../.claude/lint-scope.json` — see the root `CLAUDE.md`.
 
 Note: chapters written before the current notation convention still use plain uppercase for vectors; they are being migrated one chapter at a time, so `check-prose` notation warnings in an old chapter are expected rather than new breakage.
